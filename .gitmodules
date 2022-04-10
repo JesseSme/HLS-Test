@@ -1,0 +1,21 @@
+[submodule "ac_types"]
+	path = ac_types
+	url = https://github.com/hlslibs/ac_types.git
+[submodule "ac_simutils"]
+	path = ac_simutils
+	url = https://github.com/hlslibs/ac_simutils.git
+[submodule "ac_ml"]
+	path = ac_ml
+	url = https://github.com/hlslibs/ac_ml.git
+[submodule "ac_ipl"]
+	path = ac_ipl
+	url = https://github.com/hlslibs/ac_ipl.git
+[submodule "ac_dsp"]
+	path = ac_dsp
+	url = https://github.com/hlslibs/ac_dsp.git
+[submodule "ac_math"]
+	path = ac_math
+	url = https://github.com/hlslibs/ac_math.git
+[submodule "systemc"]
+	path = systemc
+	url = https://github.com/accellera-official/systemc.git
