@@ -1,0 +1,10 @@
+Catapult??
+Catapult
+Catapult??
+*.ccs
+*.log
+*.pinfo
+*.vstf
+
+include/
+.vscode/
