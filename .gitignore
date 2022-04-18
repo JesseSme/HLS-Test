@@ -8,3 +8,14 @@ Catapult??
 
 include/
 .vscode/
+SPI_sysc/@_opt/_data/exemptb9vk84
+SPI_sysc/@_opt/_data/exemptbhxkg3
+SPI_sysc/@_opt/_data/exemptyg6cs5
+*.qdb
+*.qpg
+*.qtl
+SPI_sysc/_info
+SPI_sysc/_opt__lock
+SPI_sysc/_vmake
+transcript
+*.wlf
