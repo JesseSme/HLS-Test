@@ -3,17 +3,18 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
-ENTITY bidir_pin IS
-  port (
-    wr_en : IN std_logic;
-    data_io : INOUT std_logic
-  );
-END bidir_pin;
+ENTITY bidir IS
+    PORT(
+        data_io   : INOUT STD_LOGIC;
+        wr_en : IN STD_LOGIC;
+        inp     : out STD_LOGIC;
+        outp    : in std_logic
+        );
+END bidir;
 
-ARCHITECTURE struct OF bidir_pin IS
-  SIGNAL input : std_logic;
-  SIGNAL output : std_logic := '1';
+ARCHITECTURE maxpld OF bidir IS
 BEGIN
-  data_io <= output WHEN wr_en = '1' ELSE 'Z';
-  input <= data_io;
-END ARCHITECTURE struct;
+
+  data_io <= outp when wr_en = '1' else 'Z';
+  inp <= data_io;
+END maxpld;
