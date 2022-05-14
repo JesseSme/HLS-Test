@@ -11,6 +11,7 @@ entity spi_sclk_generator is
         i_clk : in std_logic;
         i_cs : in std_logic;
         o_sclk : out std_logic
+        -- o_data_index : out integer
         );
 end entity;
 
@@ -29,9 +30,9 @@ architecture rtl of spi_sclk_generator is
     signal r_sclk : std_logic := '1';
     signal r_sclk_m1 : std_logic := '1';
 
-begin
+    -- signal r_data_index : integer range 0 to g_data_width*2 := 0;
 
-    r_cs <= i_cs;
+begin
 
     p_generate_sclk : process(i_clk)
     begin
@@ -57,6 +58,7 @@ begin
                     else
                         s_half_sclk_counter <= s_half_sclk_counter + 1;
                         if s_half_sclk_counter = c_half_sclk then
+                            -- r_data_index <= r_data_index + 1;
                             s_half_sclk_counter <= 0;
                             r_sclk <= not r_sclk;
                         end if;
@@ -65,8 +67,12 @@ begin
         end if;
     end process p_generate_sclk;
 
-    r_sclk_m1 <= r_sclk;
-    o_sclk <= r_sclk_m1;
+    -- r_sclk_m1 <= r_sclk;
+    o_sclk <= r_sclk;
     -- o_bit_pos <= r_bit_pos when i_cs = '0' else 0;
+
+    r_cs <= i_cs;
+
+    -- o_data_index <= r_data_index;
     
 end architecture rtl;

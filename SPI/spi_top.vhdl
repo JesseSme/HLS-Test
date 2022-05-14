@@ -1,6 +1,9 @@
 library ieee;
 use IEEE.std_logic_1164.all;
+
+library work;
 use work.all;
+use work.adxl_addresses.all;
 
 entity spi_top is
     generic (
@@ -19,17 +22,31 @@ end entity;
 
 architecture rtl of spi_top is
 
+    type t_ctrl_state is (s_read_devid,
+                        s_write_power_ctl, 
+                        s_write_data_format_reg, 
+                        s_write_bw_rate_reg, 
+                        s_read_x0,
+                        s_read_x1,
+                        s_read_y0,
+                        s_read_y1,
+                        s_read_z0,
+                        s_read_z1);
+    signal s_ctrl_state : t_ctrl_state := s_read_devid;
+
     -- Oscillator clock 120MHz
     signal clk : std_logic;
     
     -- SCLK clock
     signal sclk : std_logic;
 
-    signal test_data : std_logic_vector(15 downto 0) := x"0001";
+
+    -- signal test_data : std_logic_vector(15 downto 0) := x"0001";
     -- signal test_data : std_logic_vector(15 downto 0) := x"006D";
     -- signal test_data : std_logic_vector(15 downto 0) := x"006C";
     -- signal test_data : std_logic_vector(15 downto 0) := x"8F55";
     -- signal test_data : std_logic_vector(15 downto 0) := x"028D";
+    signal test_data : std_logic_vector(15 downto 0);
     signal out_data : std_logic_vector(7 downto 0);
     signal out_test_counter : integer;
     signal r_done : std_logic;
@@ -47,7 +64,18 @@ architecture rtl of spi_top is
     --     );
     -- end component;
 
+    -- component IOBUF
+    --     port (
+    --         O: out std_logic;
+    --         IO: inout std_logic;
+    --         I: in std_logic;
+    --         OEN: in std_logic
+    --     );
+    -- end component;
+
 begin
+
+    -- test_data <= setWriteVector(c_READ, getAddress(c_DATA_X0_R), '0','0','0','0','0','0','0','0');
 
     o_sclk <= sclk;
     -- s_inp <= s_bidir_inp;
@@ -104,5 +132,31 @@ begin
             data_io => data_io,
             inp => s_bidir_inp,
             outp => s_bidir_outp);
+
+
+    p_data_ctrl : process (s_cs)
+        variable v_old_cs : std_logic := '1';
+    begin
+        if rising_edge(s_cs) then
+
+            case s_ctrl_state is
+
+                when s_booting =>
+                    test_data <= setWriteVector(c_WRITE, getAddress(c_POWER_CTL_RW), '0', '0', '0', '0', '1', '0', '0', '0');
+                    s_ctrl_state <= s_configure;
+
+                when s_configure => 
+                    test_data <= setWriteVector(c_WRITE, getAddress(c_DATA_FORMAT_RW), '1', '1', '0', '0', '0', '1', '0', '1');
+
+        end if;
+    end process p_data_ctrl;
+
+    -- uut:IOBUF
+    --     port map (
+    --         O => s_bidir_outp,
+    --         IO => data_io,
+    --         I => s_bidir_inp,
+    --         OEN => s_we
+    --         );
 
 end architecture;

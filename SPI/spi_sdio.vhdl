@@ -1,7 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.adxl_addresses.all;
+library SPI_sysc;
+use SPI_sysc.adxl_addresses;
 
 entity spi_sdio is
     generic (
@@ -56,7 +57,7 @@ architecture rtl of spi_sdio is
 begin
 
     o_done <= r_done;
-    o_we <= r_we;
+    o_we <= r_we; -- not'd when using IP-block
     r_cs <= i_cs;
 
     r_in_data <= i_data;
@@ -68,11 +69,6 @@ begin
     -- o_test_counter <= r_test_counter;
     o_data <= r_out_data;
 
-    
-
-
-    -- Just make this depend on i_clk instead of i_sclk
-    -- So much pain in this part
     write_to_pin: process(i_clk)
     begin
         if rising_edge(i_clk) then
@@ -105,14 +101,14 @@ begin
                         r_sclk_counter <= r_sclk_counter + 1;
                         r_half_sclk_counter <= 0;
 
-                        if r_sclk_counter = c_dw_x2 then
+                        if r_sclk_counter = c_dw_x2-1 then
                             s_data_handle_state <= s_done;
                         end if;
 
+                        r_out_bit <= r_in_data(r_bit_counter);
                         if r_sclk_counter < 17 then
                             r_we <= '1';
                             if r_sclk_counter mod 2 = 1 then
-                                r_out_bit <= r_in_data(r_bit_counter);
                                 if r_bit_counter <= 7 then 
                                     r_bit_counter <= r_bit_counter + 1;
                                 end if;
@@ -136,12 +132,12 @@ begin
                         r_sclk_counter <= r_sclk_counter + 1;
                         r_half_sclk_counter <= 0;
 
-                        if r_sclk_counter = c_dw_x2 then
+                        if r_sclk_counter = c_dw_x2-1 then
                             s_data_handle_state <= s_done;
                         end if;
 
+                        r_out_bit <= r_in_data(r_bit_counter);
                         if r_sclk_counter mod 2 = 1 then
-                            r_out_bit <= r_in_data(r_bit_counter);
                             if r_bit_counter /= 15 then 
                                 r_bit_counter <= r_bit_counter + 1;
                             end if;

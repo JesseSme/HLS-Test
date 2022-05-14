@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 
 package adxl_addresses is
 
+    -- type t_adxl_data is std_logic_vector(15 downto 0);
+
     constant c_READ                 : std_logic_vector(1 downto 0) := "01";
     constant c_WRITE                : std_logic_vector(1 downto 0) := "00";
 
@@ -36,15 +38,11 @@ package adxl_addresses is
     constant c_DATA_Z0_R            : std_logic_vector(0 to 5)  := "110110";
     constant c_DATA_Z1_R            : std_logic_vector(0 to 5)  := "110111";
 
-    function getAddress(address : std_logic_vector(0 to 5)) return std_logic_vector(5 downto 0) is
-        variable tmp : std_logic_vector(5 downto 0);
-    begin
-        tmp := address;
-        return tmp;
-    end function;
+    function getAddress(address : std_logic_vector(0 to 5)) 
+        return std_logic_vector;
 
-    function setWriteData(rw : std_logic_vector(1 downto 0);
-                          address std_logic_vector(5 downto 0);
+    function setWriteVector(rw : std_logic_vector(1 downto 0);
+                          address : std_logic_vector(5 downto 0);
                           D7 : std_logic;
                           D6 : std_logic;
                           D5 : std_logic;
@@ -53,12 +51,38 @@ package adxl_addresses is
                           D2 : std_logic;
                           D1 : std_logic;
                           D0 : std_logic)
-        return std_logic_vector(15 downto 0) is
+        return std_logic_vector;
+
+end package adxl_addresses;
+
+
+
+package body adxl_addresses is
+
+    function getAddress(address : std_logic_vector(0 to 5)) 
+        return std_logic_vector is
+        variable tmp : std_logic_vector(5 downto 0);
+    begin
+        tmp := address;
+        return tmp;
+    end function;
+
+
+    function setWriteVector(rw : std_logic_vector(1 downto 0);
+                            address : std_logic_vector(5 downto 0);
+                            D7 : std_logic;
+                            D6 : std_logic;
+                            D5 : std_logic;
+                            D4 : std_logic;
+                            D3 : std_logic;
+                            D2 : std_logic;
+                            D1 : std_logic;
+                            D0 : std_logic)
+        return std_logic_vector is
 
         variable tmp : std_logic_vector(15 downto 0) := (others => '0');
     begin
         tmp(15 downto 0)    := D7 & D6 & D5 & D4 & D3 & D2 & D1 & D0 & address & rw;
         return tmp;
     end function;
-
-end package adxl_addresses;
+end package body adxl_addresses;
