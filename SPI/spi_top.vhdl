@@ -32,9 +32,9 @@ architecture rtl of spi_top is
                         s_read_y1,
                         s_read_z0,
                         s_read_z1);
-    signal s_ctrl_state : t_ctrl_state := s_read_devid;
+    signal s_ctrl_state : t_ctrl_state := s_write_power_ctl;
 
-    -- Oscillator clock 120MHz
+    -- Oscillator clock 120/60/30MHz
     signal clk : std_logic;
     
     -- SCLK clock
@@ -135,18 +135,81 @@ begin
 
 
     p_data_ctrl : process (s_cs)
-        variable v_old_cs : std_logic := '1';
     begin
         if rising_edge(s_cs) then
 
             case s_ctrl_state is
 
-                when s_booting =>
-                    test_data <= setWriteVector(c_WRITE, getAddress(c_POWER_CTL_RW), '0', '0', '0', '0', '1', '0', '0', '0');
-                    s_ctrl_state <= s_configure;
+                -- Configuration and bidir pin verification
+                when s_write_power_ctl =>
+                    test_data <= setWriteVector(c_WRITE,
+                                             getAddress(c_POWER_CTL_RW),
+                                              '0', '0', '0', '0', 
+                                              '1', '0', '0', '0');
+                    s_ctrl_state <= s_write_power_ctl;
 
-                when s_configure => 
-                    test_data <= setWriteVector(c_WRITE, getAddress(c_DATA_FORMAT_RW), '1', '1', '0', '0', '0', '1', '0', '1');
+                when s_write_data_format_reg => 
+                    test_data <= setWriteVector(c_WRITE, 
+                                            getAddress(c_DATA_FORMAT_RW),
+                                            '1', '1', '0', '0',
+                                            '0', '1', '0', '1');
+                    s_ctrl_state <= s_write_bw_rate_reg;
+
+                when s_write_bw_rate_reg =>
+                    test_data <= setWriteVector(c_WRITE,
+                                            getAddress(c_BW_RATE_RW),
+                                            '0', '0', '0', '0',
+                                            '1', '1', '1', '1');
+                    s_ctrl_state <= s_read_devid;
+
+                when s_read_devid =>
+                    test_data <= setWriteVector(c_READ,
+                                            getAddress(c_DEVID_R),
+                                            '0', '0', '0', '0',
+                                            '0', '0', '0', '0');
+                    if out_data = "11100101" or out_data = "10100111" then
+                        s_ctrl_state <= s_read_x0;
+                    else
+                        s_ctrl_state <= s_read_devid;
+                    end if;
+
+                -- Read loop
+                when s_read_x0 =>
+                    test_data <= setWriteVector(c_READ,
+                                        getAddress(c_DATA_X0_R),
+                                        '0', '0', '0', '0',
+                                        '0', '0', '0', '0');
+                when s_read_x1 =>
+                    test_data <= setWriteVector(c_READ,
+                                        getAddress(c_DATA_X1_R),
+                                        '0', '0', '0', '0',
+                                        '0', '0', '0', '0');
+
+                when s_read_y0 =>
+                    test_data <= setWriteVector(c_READ,
+                                        getAddress(c_DATA_Y0_R),
+                                        '0', '0', '0', '0',
+                                        '0', '0', '0', '0');
+
+                when s_read_y1 =>
+                    test_data <= setWriteVector(c_READ,
+                                    getAddress(c_DATA_Y1_R),
+                                    '0', '0', '0', '0',
+                                    '0', '0', '0', '0');
+
+                when s_read_z0 =>
+                    test_data <= setWriteVector(c_READ,
+                                    getAddress(c_DATA_Z0_R),
+                                    '0', '0', '0', '0',
+                                    '0', '0', '0', '0');
+
+                when s_read_z1 =>
+                    test_data <= setWriteVector(c_READ,
+                                    getAddress(c_DATA_Z1_R),
+                                    '0', '0', '0', '0',
+                                    '0', '0', '0', '0');
+
+
 
         end if;
     end process p_data_ctrl;
