@@ -140,6 +140,10 @@ begin
 
             case s_ctrl_state is
 
+                -- Configure and read devid before 
+                -- setting ADXL to measurement mode
+                -- via POWER_CTL register
+
                 -- Configuration and bidir pin verification
                 when s_write_power_ctl =>
                     test_data <= setWriteVector(c_WRITE,
