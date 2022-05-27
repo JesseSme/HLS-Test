@@ -19,3 +19,5 @@ SPI_sysc/_opt__lock
 SPI_sysc/_vmake
 transcript
 *.wlf
+Makefile
+_info

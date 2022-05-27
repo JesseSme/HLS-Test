@@ -4,6 +4,9 @@ use IEEE.numeric_std.all;
 use work.all;
 
 entity transmit_top is
+    generic (
+        g_data_width : integer := 16
+    );
     port (
         -- clk : in std_logic;
         rst_n : in std_logic;
@@ -26,7 +29,7 @@ architecture rtl of transmit_top is
 
     constant c_CLKS_PER_BIT : integer := 1041;
     constant c_CLK_FREQ : integer := 120_000_000;
-    constant c_SCLK_FREQ : integer := 1_000_000;
+    constant c_SCLK_FREQ : integer := 2_000_000;
 
     signal r_TX_DV     : std_logic                    := '0';
     signal r_TX_BYTE   : std_logic_vector(7 downto 0) := "10101010";
@@ -42,6 +45,10 @@ architecture rtl of transmit_top is
 
     signal w_SPI_BYTE : std_logic_vector(7 downto 0) := (others => '0');
     signal r_SDIO : std_logic;
+
+    signal r_axis_data_non_filtered : std_logic_vector(g_data_width-1 downto 0);
+    signal r_axis_data_filtered : std_logic_vector(g_data_width-1 downto 0);
+    signal r_axis_enable : std_logic_vector(2 downto 0);
     
 
     component Gowin_OSC
@@ -50,15 +57,24 @@ architecture rtl of transmit_top is
         );
     end component;
     signal clk : std_logic;
+
+    component FIR_filter is
+        port (
+            i_clk : in std_logic;
+            i_data : in std_logic_vector(g_data_width-1 downto 0);
+            i_en : in std_logic;
+            o_data : out std_logic_vector(g_data_width-1 downto 0)
+        );
+    end component;
     
 begin
 
-    OSC_60MHz: Gowin_OSC
+    OSC_120MHz: Gowin_OSC
     port map (
         oscout => clk);
 
 
-    r_button <= not i_button;
+    r_button <= '0' when not i_button else '1';
 
     -- Instantiate UART Receiver
     UART_RX_INST : entity uart_rx
@@ -95,12 +111,21 @@ begin
         port map (
             i_clk => clk,
             data_io => sdio,
+            i_button => r_button,
             o_sclk => o_sclk,
             o_cs => o_cs,
-            -- o_data => open
-            o_data => w_SPI_BYTE
+            o_data => r_axis_data_non_filtered,
+            o_data_axis =>  r_axis_enable,
+            o_spi_dv => open
             );
-    
+
+    GEN_FIR_FILTER: for I in 0 to 2 generate
+        FIRX : FIR_filter port map (
+            i_clk => clk, 
+            i_data => r_axis_data_non_filtered,
+            i_en => r_axis_enable(I),
+            o_data => r_axis_data_filtered);
+    end generate GEN_FIR_FILTER;
 
     
     test_write : process(clk) is

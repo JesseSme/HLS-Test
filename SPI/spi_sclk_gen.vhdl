@@ -30,6 +30,8 @@ architecture rtl of spi_sclk_generator is
     signal r_sclk : std_logic := '1';
     signal r_sclk_m1 : std_logic := '1';
 
+    -- signal r_edges : integer range (g_data_width*2)+1 downto 0 := g_data_width*2;
+
     -- signal r_data_index : integer range 0 to g_data_width*2 := 0;
 
 begin

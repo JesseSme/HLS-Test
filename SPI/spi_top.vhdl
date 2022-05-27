@@ -12,11 +12,20 @@ entity spi_top is
         g_data_width : integer := 16
     );
     port (
+        -- CLK
         i_clk : in std_logic;
+        -- BUTTON TO MANUALLY ENABLE SPI
+        i_button : in std_logic;
+        -- SPI PINS
         data_io : inout std_logic;
         o_sclk : out std_logic;
         o_cs : out std_logic;
-        o_data : out std_logic_vector(7 downto 0)
+        -- SINGLE AXIS DATA OUT
+        o_data : out std_logic_vector(g_data_width-1 downto 0);
+        -- ENABLE VECTOR FOR FIR_FILTERS
+        o_data_axis : out std_logic_vector(2 downto 0);
+        -- DATA VALID
+        o_spi_dv : out std_logic
     );
 end entity;
 
@@ -24,39 +33,44 @@ architecture rtl of spi_top is
 
     type t_ctrl_state is (s_read_devid,
                         s_write_power_ctl, 
-                        s_write_data_format_reg, 
-                        s_write_bw_rate_reg, 
+                        s_write_data_format_reg,
+                        s_read_data_format_reg,
+                        s_write_bw_rate_reg,
                         s_read_x0,
                         s_read_x1,
                         s_read_y0,
                         s_read_y1,
                         s_read_z0,
                         s_read_z1);
-    signal s_ctrl_state : t_ctrl_state := s_write_power_ctl;
+    signal s_ctrl_state : t_ctrl_state := s_write_data_format_reg;
 
     -- Oscillator clock 120/60/30MHz
     signal clk : std_logic;
     
     -- SCLK clock
-    signal sclk : std_logic;
+    signal r_sclk : std_logic;
 
+    -- DATA TO SEND
+    signal r_transmit_data : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
 
-    -- signal test_data : std_logic_vector(15 downto 0) := x"0001";
-    -- signal test_data : std_logic_vector(15 downto 0) := x"006D";
-    -- signal test_data : std_logic_vector(15 downto 0) := x"006C";
-    -- signal test_data : std_logic_vector(15 downto 0) := x"8F55";
-    -- signal test_data : std_logic_vector(15 downto 0) := x"028D";
-    signal test_data : std_logic_vector(15 downto 0);
-    signal out_data : std_logic_vector(7 downto 0);
-    signal out_test_counter : integer;
-    signal r_done : std_logic;
-    signal s_we : std_logic;
-    signal s_cs : std_logic := '1';
+    -- ALL 3 AXIS JUST IN CASE
+    signal r_full_data : std_logic_vector((3*g_data_width)-1 downto 0) := (others => '0');
 
-    signal s_bidir_inp : std_logic;
-    signal s_bidir_outp : std_logic := '0';
-    signal s_inp : std_logic;
-    signal s_outp : std_logic;
+    -- SINGLE AXIS
+    signal r_single_axis_data : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
+    signal r_data_axis : std_logic_vector(2 downto 0) := "000";
+
+    -- DATA RECEIVED FROM SDIO
+    signal r_received_data : std_logic_vector(7 downto 0);
+
+    -- DATA VALID FOR CS
+    signal r_spi_dv : std_logic;
+
+    -- ENABLE REGISTER FOR CS
+    signal r_we : std_logic;
+    signal r_cs : std_logic := '1';
+
+    signal r_button : std_logic := '0';
 
     -- component Gowin_OSC
     --     port (
@@ -64,41 +78,16 @@ architecture rtl of spi_top is
     --     );
     -- end component;
 
-    -- component IOBUF
-    --     port (
-    --         O: out std_logic;
-    --         IO: inout std_logic;
-    --         I: in std_logic;
-    --         OEN: in std_logic
-    --     );
-    -- end component;
-
 begin
 
-    -- test_data <= setWriteVector(c_READ, getAddress(c_DATA_X0_R), '0','0','0','0','0','0','0','0');
-
-    o_sclk <= sclk;
-    -- s_inp <= s_bidir_inp;
-    -- s_bidir_outp <= s_outp;
-    o_cs <= s_cs;
-
-    o_data <= out_data;
-    
-    -- OSC_120MHz: Gowin_OSC
-    -- port map (
-    --     oscout => clk);
     clk <= i_clk;
 
+    o_cs <= r_cs when r_button = '1' else '1';
+    o_sclk <= r_sclk;
 
-    SCLK_Gen : entity spi_sclk_generator
-        generic map (
-            g_clk_freq => g_clk_freq,
-            g_sclk_freq => g_sclk_freq
-            )
-        port map (
-            i_clk => clk,
-            i_cs => s_cs,
-            o_sclk => sclk);
+    o_data <= r_single_axis_data;
+    o_data_axis <= r_data_axis;
+
 
     CS_gen : entity spi_cs_generator
         generic map (
@@ -106,8 +95,10 @@ begin
             )
         port map (
             i_clk => clk,
-            i_done => r_done,
-            o_cs => s_cs);
+            i_done => r_spi_dv,
+            i_we => r_button,
+            o_cs => r_cs);
+
 
     SPI_data : entity spi_sdio
         generic map (
@@ -116,27 +107,39 @@ begin
             )
         port map (
             i_clk => clk,
-            i_cs => s_cs,
-            i_data => test_data(15 downto 0),
-            o_data => out_data,
-            o_bit_out => s_bidir_outp,
-            i_bit_in => s_bidir_inp,
-            o_test_counter => open,
-            o_we => s_we,
-            o_done => r_done
+            i_cs => r_cs,
+            o_sclk => r_sclk,
+            io_pin => data_io,
+            i_data_transmit => r_transmit_data(15 downto 0),
+            o_data_received => r_received_data,
+            o_spi_dv => r_spi_dv
             );
 
-    data_pin : entity bidir
-        port map (
-            wr_en => s_we,
-            data_io => data_io,
-            inp => s_bidir_inp,
-            outp => s_bidir_outp);
-
-
-    p_data_ctrl : process (s_cs)
+    -- A button debouncer
+    process (clk)
+        variable v_button_counter : integer range 0 to 1000 := 0;
     begin
-        if rising_edge(s_cs) then
+        if rising_edge(clk) then
+            if i_button = '1' then
+                if v_button_counter = 1000 then
+                    r_button <= '1';
+                else
+                    v_button_counter := v_button_counter + 1;
+                end if;
+            else
+                -- s_ctrl_state <= s_write_data_format_reg;
+                v_button_counter := 0;
+                r_button <= '0';
+            end if;
+        end if;
+    end process;
+
+
+    -- Process that reads the accelerators acceleration registers
+    p_data_ctrl : process (r_cs)
+        variable v_failed_to_read : integer range 0 to 5 := 0;
+    begin
+        if rising_edge(r_cs) then
 
             case s_ctrl_state is
 
@@ -145,85 +148,113 @@ begin
                 -- via POWER_CTL register
 
                 -- Configuration and bidir pin verification
-                when s_write_power_ctl =>
-                    test_data <= setWriteVector(c_WRITE,
-                                             getAddress(c_POWER_CTL_RW),
-                                              '0', '0', '0', '0', 
-                                              '1', '0', '0', '0');
-                    s_ctrl_state <= s_write_power_ctl;
-
                 when s_write_data_format_reg => 
-                    test_data <= setWriteVector(c_WRITE, 
-                                            getAddress(c_DATA_FORMAT_RW),
-                                            '1', '1', '0', '0',
-                                            '0', '1', '0', '1');
-                    s_ctrl_state <= s_write_bw_rate_reg;
+                    r_transmit_data <= setWriteVector(c_WRITE, 
+                                            c_DATA_FORMAT_RW,
+                                            "11000011");
+                    s_ctrl_state <= s_read_data_format_reg;
+
+                when s_read_data_format_reg =>
+                    r_transmit_data <= setWriteVector(c_READ,
+                                        c_DATA_FORMAT_RW,
+                                        "00000000");
+                    if r_received_data = "11000011" or r_received_data = "11000011" then
+                        s_ctrl_state <= s_write_bw_rate_reg;
+                    else
+                        if v_failed_to_read = 5 then
+                            v_failed_to_read := 0;
+                            s_ctrl_state <= s_write_data_format_reg;
+                        else 
+                            v_failed_to_read := v_failed_to_read + 1;
+                        end if;
+                    end if;
+                            
 
                 when s_write_bw_rate_reg =>
-                    test_data <= setWriteVector(c_WRITE,
-                                            getAddress(c_BW_RATE_RW),
-                                            '0', '0', '0', '0',
-                                            '1', '1', '1', '1');
+                    r_transmit_data <= setWriteVector(c_WRITE,
+                                            c_BW_RATE_RW,
+                                            "11110000");
                     s_ctrl_state <= s_read_devid;
 
                 when s_read_devid =>
-                    test_data <= setWriteVector(c_READ,
-                                            getAddress(c_DEVID_R),
-                                            '0', '0', '0', '0',
-                                            '0', '0', '0', '0');
-                    if out_data = "11100101" or out_data = "10100111" then
-                        s_ctrl_state <= s_read_x0;
+                    r_transmit_data <= setWriteVector(c_READ,
+                                            c_DEVID_R,
+                                            "00000000");
+                    if r_received_data = "11100101" or r_received_data = "10100111" then
+                        s_ctrl_state <= s_write_power_ctl;
+                        -- s_ctrl_state <= s_read_devid;
+                        -- s_ctrl_state <= s_read_x0;
                     else
                         s_ctrl_state <= s_read_devid;
                     end if;
 
-                -- Read loop
-                when s_read_x0 =>
-                    test_data <= setWriteVector(c_READ,
-                                        getAddress(c_DATA_X0_R),
-                                        '0', '0', '0', '0',
-                                        '0', '0', '0', '0');
-                when s_read_x1 =>
-                    test_data <= setWriteVector(c_READ,
-                                        getAddress(c_DATA_X1_R),
-                                        '0', '0', '0', '0',
-                                        '0', '0', '0', '0');
+                when s_write_power_ctl => 
+                    r_transmit_data <= setWriteVector(c_WRITE,
+                                            c_POWER_CTL_RW,
+                                            "00010000");
+                    s_ctrl_state <= s_read_x0;
 
+                -- Read loop
+                -- X-AXIS
+                when s_read_x0 =>
+                    r_transmit_data <= setWriteVector(c_READ,
+                                        c_DATA_X0_R,
+                                        "00000000");
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    
+                    -- s_ctrl_state <= s_read_x1;
+                    
+                when s_read_x1 =>
+                    r_transmit_data <= setWriteVector(c_READ,
+                                        c_DATA_X1_R,
+                                        "00000000");
+                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_data_axis <= "001";
+                    s_ctrl_state <= s_read_y0;
+
+                -- Y-AXIS
                 when s_read_y0 =>
-                    test_data <= setWriteVector(c_READ,
-                                        getAddress(c_DATA_Y0_R),
-                                        '0', '0', '0', '0',
-                                        '0', '0', '0', '0');
+                    r_transmit_data <= setWriteVector(c_READ,
+                                        c_DATA_Y0_R,
+                                        "00000000");
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    s_ctrl_state <= s_read_y1;
 
                 when s_read_y1 =>
-                    test_data <= setWriteVector(c_READ,
-                                    getAddress(c_DATA_Y1_R),
-                                    '0', '0', '0', '0',
-                                    '0', '0', '0', '0');
+                    r_transmit_data <= setWriteVector(c_READ,
+                                    c_DATA_Y1_R,
+                                    "00000000");
+                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_data_axis <= "010";
+                    s_ctrl_state <= s_read_z0;
 
+                -- Z-AXIS
                 when s_read_z0 =>
-                    test_data <= setWriteVector(c_READ,
-                                    getAddress(c_DATA_Z0_R),
-                                    '0', '0', '0', '0',
-                                    '0', '0', '0', '0');
+                    r_transmit_data <= setWriteVector(c_READ,
+                                    c_DATA_Z0_R,
+                                    "00000000");
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    s_ctrl_state <= s_read_z1;
 
                 when s_read_z1 =>
-                    test_data <= setWriteVector(c_READ,
-                                    getAddress(c_DATA_Z1_R),
-                                    '0', '0', '0', '0',
-                                    '0', '0', '0', '0');
+                    r_transmit_data <= setWriteVector(c_READ,
+                                    c_DATA_Z1_R,
+                                    "00000000");
+                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_data_axis <= "100";
+                    s_ctrl_state <= s_read_x0;
 
 
-
+            end case;
         end if;
     end process p_data_ctrl;
 
     -- uut:IOBUF
     --     port map (
-    --         O => s_bidir_outp,
+    --         O => r_bidir_outp,
     --         IO => data_io,
-    --         I => s_bidir_inp,
-    --         OEN => s_we
+    --         I => r_bidir_inp,
+    --         OEN => r_we
     --         );
 
 end architecture;
