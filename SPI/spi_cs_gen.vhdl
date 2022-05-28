@@ -23,8 +23,8 @@ architecture rtl of spi_cs_generator is
 
     -- Amount of clock cycles between pulling CS down
     constant c_cs_freq : integer := (g_clk_freq/g_cs_freq);
-    constant c_clk_in_ns : sfixed(20 downto -10) := to_sfixed((1.0/g_clk_freq)*1_000_000_000.0, 20, -10);
-    constant c_cs_deassertion_max : integer := 150/to_integer(c_clk_in_ns);
+    constant c_clk_in_ns :integer := (1_000_000_000/g_clk_freq);
+    constant c_cs_deassertion_max : integer := (150/c_clk_in_ns)+1;
 
     signal r_cs : std_logic := '1';
     signal r_done : std_logic;

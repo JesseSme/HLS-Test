@@ -2,73 +2,274 @@ m255
 K4
 z2
 !s11e vcom 2020.4 2020.10, Oct 13 2020
-!s11f vlog 2020.4 2020.10, Oct 13 2020
 13
 !s112 1.1
 !i10d 8192
 !i10e 25
 !i10f 100
 cModel Technology
-Z0 dD:/HLS-Test/SPI_sysc
+Z0 dC:/Users/Jesse/Documents/GitHub/HLS-Test/SPI
 Padxl_addresses
 Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z2 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-32
-b1
-Z3 !s110 1652127125
-!i10b 1
-!i122 1
-Z4 w1652124165
-Z5 dD:/HLS-Test/SPI
-Z6 8D:\HLS-TEST\SPI\adxl_addresses.vhdl
-Z7 FD:\HLS-TEST\SPI\adxl_addresses.vhdl
+!i122 0
+Z3 w1653679921
+R0
+Z4 8adxl_addresses.vhdl
+Z5 Fadxl_addresses.vhdl
 l0
 L4 1
-VlEPh;jZS7BdPicXIHLE421
-!s100 kTY]HzZ`MFX:?L7hLB7_l2
-Z8 OL;C;2020.4;71
+Vm?DN=`@4g?eX>Md>J`LV;1
+!s100 KT]Vn_QDZ]`Bc4k3bRjlT0
+Z6 OL;C;2020.4;71
+32
 b1
-Z9 !s108 1652127125.000000
-Z10 !s90 D:\HLS-TEST\SPI\adxl_addresses.vhdl|
-Z11 !s107 D:\HLS-TEST\SPI\adxl_addresses.vhdl|
+Z7 !s110 1653681491
+!i10b 1
+Z8 !s108 1653681491.000000
+Z9 !s90 -reportprogress|300|adxl_addresses.vhdl|
+Z10 !s107 adxl_addresses.vhdl|
 !i113 0
-Z12 tExplicit 1 CvgOpt 0
+Z11 tExplicit 1 CvgOpt 0
 Bbody
-DPx4 work 14 adxl_addresses 0 22 lEPh;jZS7BdPicXIHLE421
+Z12 DPx4 work 14 adxl_addresses 0 22 m?DN=`@4g?eX>Md>J`LV;1
 R1
 R2
-32
-R3
-!i10b 1
-!i122 1
+!i122 0
 l0
-L60 1
-VcQoDGGZlCkfo]NIo^b:e;1
-!s100 kJX7Z9?]CEKTS1JWXJZg80
+L54 1
+VPdXeJ2NQdEo=JhXEgBo^G3
+!s100 8<Tdi9?Bl8P`=[1:6m`b51
+R6
+32
+R7
+!i10b 1
 R8
 R9
 R10
-R11
 !i113 0
-R12
-Espi_top
+R11
+Ebidir
+Z13 w1653766591
 R1
 R2
-32
-!s110 1652126897
-!i10b 1
-w1652126883
-!i122 0
+!i122 15
 R0
-8D:\HLS-TEST\SPI_sysc\spi_top.vhdl
-FD:\HLS-TEST\SPI_sysc\spi_top.vhdl
+Z14 8tristate_pin.vhdl
+Z15 Ftristate_pin.vhdl
 l0
-L4 1
-VgU4gm`8d?zP>=^3gKVFd63
-!s100 ME^MnM[VNhzVH^L@c5Via1
-R8
-!s108 1652126897.000000
-!s90 D:\HLS-TEST\SPI_sysc\spi_top.vhdl|
-!s107 D:\HLS-TEST\SPI_sysc\spi_top.vhdl|
+L7 1
+Vh1<<2YUi7WzS:D[I5cFMB1
+!s100 VFS2d<FzAhYTA6eRa9ioK0
+R6
+32
+Z16 !s110 1653766992
+!i10b 1
+Z17 !s108 1653766992.000000
+Z18 !s90 -reportprogress|300|tristate_pin.vhdl|
+Z19 !s107 tristate_pin.vhdl|
 !i113 0
+R11
+Amaxpld
+R1
+R2
+Z20 DEx4 work 5 bidir 0 22 h1<<2YUi7WzS:D[I5cFMB1
+!i122 15
+l18
+L17 11
+VT7DT;nzR?]EA<E65nPCTY1
+!s100 2hm1mG2<GN>6m;Xo<W1GR0
+R6
+32
+R16
+!i10b 1
+R17
+R18
+R19
+!i113 0
+R11
+Efir_filter
+Z21 w1653685539
+Z22 DPx4 ieee 17 fixed_float_types 0 22 j<WD5SZ6`I4KC;8P]h@_10
+Z23 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+R2
+R1
+Z24 DPx4 ieee 17 fixed_generic_pkg 0 22 Rl?j<5:i_L<aE9]<7A]V?0
+Z25 DPx4 ieee 9 fixed_pkg 0 22 c`b>2Shb`ic5KAcV=K;Co1
+!i122 14
+R0
+Z26 8fir_filter.vhdl
+Z27 Ffir_filter.vhdl
+l0
+L5 1
+V8D;E<=6JbnSE2L7`Y^o5P1
+!s100 ?WO]_OGLzdaXHXQVVj;km2
+R6
+32
+Z28 !s110 1653685543
+!i10b 1
+Z29 !s108 1653685543.000000
+Z30 !s90 -reportprogress|300|fir_filter.vhdl|
+Z31 !s107 fir_filter.vhdl|
+!i113 0
+R11
+Artl
+R22
+R23
+R2
+R1
+R24
+R25
+DEx4 work 10 fir_filter 0 22 8D;E<=6JbnSE2L7`Y^o5P1
+!i122 14
+l35
+L18 59
+VJR@^lQDE`Q=MzIf<zhQ2D1
+!s100 blKg4<8J`oAaC@nISAEkQ3
+R6
+32
+R28
+!i10b 1
+R29
+R30
+R31
+!i113 0
+R11
+Espi_cs_generator
+Z32 w1653683737
+R22
+R23
+R24
+R25
+R1
+R2
+!i122 20
+R0
+Z33 8spi_cs_gen.vhdl
+Z34 Fspi_cs_gen.vhdl
+l0
+L5 1
+Vck_EgdCgfH3k`9D`L<VWB3
+!s100 KjH;jQGB2fGVXW2[SF^_30
+R6
+32
+Z35 !s110 1653769570
+!i10b 1
+Z36 !s108 1653769569.000000
+Z37 !s90 -reportprogress|300|spi_cs_gen.vhdl|
+!s107 spi_cs_gen.vhdl|
+!i113 0
+R11
+Artl
+R22
+R23
+R24
+R25
+R1
+R2
+Z38 DEx4 work 16 spi_cs_generator 0 22 ck_EgdCgfH3k`9D`L<VWB3
+!i122 20
+l32
+Z39 L19 66
+Z40 V>Ho9c[Wbkmfn5bXEjYMkZ1
+Z41 !s100 ]fDP`nB:e?hUK^S>C@b672
+R6
+32
+R35
+!i10b 1
+R36
+R37
+Z42 !s107 spi_cs_gen.vhdl|
+!i113 0
+R11
+Espi_sdio
+Z43 w1653767033
+R23
+R1
+R2
+!i122 19
+R0
+Z44 8spi_sdio.vhdl
+Z45 Fspi_sdio.vhdl
+l0
+L7 1
+V4=I^SQ;:U_QGDZhDLVb>=2
+!s100 @_XZ7i[miBM4HZIJjj;X?2
+R6
+32
+Z46 !s110 1653769557
+!i10b 1
+Z47 !s108 1653769557.000000
+Z48 !s90 -reportprogress|300|spi_sdio.vhdl|
+Z49 !s107 spi_sdio.vhdl|
+!i113 0
+R11
+Artl
+R20
+R23
+R1
+R2
+DEx4 work 8 spi_sdio 0 22 4=I^SQ;:U_QGDZhDLVb>=2
+!i122 19
+l59
+L27 143
+V^Vd;PW>2nmnc6Zg@T7b1c2
+!s100 BnZDEnM2F:cW^jPEd]Qm;2
+R6
+32
+R46
+!i10b 1
+R47
+R48
+R49
+!i113 0
+R11
+Espi_top
+Z50 w1653760154
 R12
+R1
+R2
+!i122 18
+R0
+8C:/Users/Jesse/Documents/GitHub/HLS-Test/SPI/spi_top.vhdl
+FC:/Users/Jesse/Documents/GitHub/HLS-Test/SPI/spi_top.vhdl
+l0
+L8 1
+V8jA7ZNG<95J03zz>:RcFg0
+!s100 bbEVcKVi^Td[FODl=_A^]0
+R6
+32
+!s110 1653768341
+!i10b 1
+!s108 1653768341.000000
+!s90 -reportprogress|300|C:/Users/Jesse/Documents/GitHub/HLS-Test/SPI/spi_top.vhdl|
+!s107 C:/Users/Jesse/Documents/GitHub/HLS-Test/SPI/spi_top.vhdl|
+!i113 0
+R11
+Artl
+DEx4 work 8 spi_sdio 0 22 ;2CeC1RF>H9gcY`2HE=<@2
+R22
+R23
+R24
+R25
+R38
+R12
+R1
+R2
+DEx4 work 7 spi_top 0 22 8jA7ZNG<95J03zz>:RcFg0
+!i122 12
+l81
+L32 229
+VLDF`]I@5J@0;c3_Yf1AEj0
+!s100 M9>bIRO6Q9e`Yh=OzHMi93
+R6
+32
+Z51 !s110 1653684151
+!i10b 1
+Z52 !s108 1653684151.000000
+Z53 !s90 -reportprogress|300|spi_cs_gen.vhdl|spi_sclk_gen.vhdl|spi_sclk_gen.vhdl|spi_top.vhdl|
+Z54 !s107 spi_top.vhdl|spi_sclk_gen.vhdl|spi_cs_gen.vhdl|
+!i113 0
+R11
+Fspi_top.vhdl
+8spi_top.vhdl

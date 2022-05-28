@@ -21,3 +21,6 @@ transcript
 *.wlf
 Makefile
 _info
+modelsim.ini
+SPI/work/_vmake
+SPI/work/_info

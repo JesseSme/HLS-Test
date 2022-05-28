@@ -15,7 +15,6 @@ entity spi_sdio is
         i_clk : in std_logic;
         -- IO
         i_cs : in std_logic;
-        o_sclk : out std_logic;
         io_pin : inout std_logic;
         -- DATA
         i_data_transmit : in std_logic_vector(g_data_width-1 downto 0);
@@ -38,7 +37,6 @@ architecture rtl of spi_sdio is
 
     -- # of edges on the data
     signal r_sclk_edge_counter : integer range 0 to c_dw_x2 := c_dw_x2;
-    signal r_sclk : std_logic := '1';
 
     -- Data valid
     signal r_spi_dv : std_logic := '0';
@@ -60,14 +58,13 @@ architecture rtl of spi_sdio is
 
 begin
 
-    o_spi_dv <= r_spi_dv;
+    -- IN SIGNALS
     r_cs <= i_cs;
-    o_sclk <= '1' when r_cs = '1' else r_sclk;
-
-
     r_data_transmit <= i_data_transmit;
     r_rw_bit <= i_data_transmit(0);
     
+    -- OUT SIGNALS
+    o_spi_dv <= r_spi_dv;
 
     write_to_pin: process(i_clk)
     begin
@@ -78,7 +75,6 @@ begin
                 when s_idle =>
                     r_spi_dv <= '0';
                     r_we <= '0';
-                    r_sclk <= '1';
 
                     r_sclk_edge_counter <= 0;
                     r_out_bit_counter <= 0;
@@ -86,7 +82,6 @@ begin
                     r_half_sclk_counter <= 0;
 
                     if r_cs = '0' then
-                        r_sclk <= not r_sclk;
                         r_sclk_edge_counter <= r_sclk_edge_counter + 1;
                         s_data_handle_state <= s_first_bit;
                     else
@@ -99,7 +94,6 @@ begin
                     r_out_bit <= r_data_transmit(r_out_bit_counter);
                         if r_half_sclk_counter = c_half_sclk then
                             r_half_sclk_counter <= 0;
-                            r_sclk <= not r_sclk;
                             r_out_bit_counter <= r_out_bit_counter + 1;
                             r_sclk_edge_counter <= r_sclk_edge_counter + 1;
                             s_data_handle_state <= s_do_spi;
@@ -118,7 +112,6 @@ begin
                         if r_sclk_edge_counter = c_dw_x2 then
                             s_data_handle_state <= s_done;
                         else
-                            r_sclk <= not r_sclk;
                             if r_sclk_edge_counter < 17 then
                                 r_we <= '1';
                                 r_out_bit <= r_data_transmit(r_out_bit_counter);
@@ -151,7 +144,6 @@ begin
                 when s_done =>
                     r_spi_dv <= '1';
                     r_we <= '1';
-                    r_sclk <= '1';
                     o_data_received <= r_data_received;
                     if r_cs = '1' then
                         s_data_handle_state <= s_idle;
@@ -166,7 +158,7 @@ begin
 
     data_pin : entity bidir
         port map (
-            i_clk => i_clk,
+            -- i_clk => i_clk,
             io_pin => io_pin,
             i_en => r_we,
             i_bit => r_in_bit,

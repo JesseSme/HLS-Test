@@ -17,9 +17,8 @@ entity spi_top is
         -- BUTTON TO MANUALLY ENABLE SPI
         i_button : in std_logic;
         -- SPI PINS
-        data_io : inout std_logic;
-        o_sclk : out std_logic;
-        o_cs : out std_logic;
+        data_io : inout std_logic_vector(17 downto 0);
+        i_cs : in std_logic;
         -- SINGLE AXIS DATA OUT
         o_data : out std_logic_vector(g_data_width-1 downto 0);
         -- ENABLE VECTOR FOR FIR_FILTERS
@@ -44,11 +43,10 @@ architecture rtl of spi_top is
                         s_read_z1);
     signal s_ctrl_state : t_ctrl_state := s_write_data_format_reg;
 
+    type t_received_data_array is array (17 downto 0) of std_logic_vector(7 downto 0);
+
     -- Oscillator clock 120/60/30MHz
     signal clk : std_logic;
-    
-    -- SCLK clock
-    signal r_sclk : std_logic;
 
     -- DATA TO SEND
     signal r_transmit_data : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
@@ -61,45 +59,32 @@ architecture rtl of spi_top is
     signal r_data_axis : std_logic_vector(2 downto 0) := "000";
 
     -- DATA RECEIVED FROM SDIO
-    signal r_received_data : std_logic_vector(7 downto 0);
+    signal r_received_data : t_received_data_array;
 
     -- DATA VALID FOR CS
+    -- signal r_spi_dv_vector : std_logic_vector
     signal r_spi_dv : std_logic;
 
     -- ENABLE REGISTER FOR CS
     signal r_we : std_logic;
-    signal r_cs : std_logic := '1';
+    signal r_cs : std_logic;
 
     signal r_button : std_logic := '0';
-
-    -- component Gowin_OSC
-    --     port (
-    --         oscout: out std_logic
-    --     );
-    -- end component;
 
 begin
 
     clk <= i_clk;
 
-    o_cs <= r_cs when r_button = '1' else '1';
-    o_sclk <= r_sclk;
+    r_cs <= i_cs;
+
+    r_transmit_data <= i_data_transmit;
+    -- o_cs <= r_cs when r_button = '1' else '1';
 
     o_data <= r_single_axis_data;
     o_data_axis <= r_data_axis;
 
 
-    CS_gen : entity spi_cs_generator
-        generic map (
-            g_clk_freq => g_clk_freq
-            )
-        port map (
-            i_clk => clk,
-            i_done => r_spi_dv,
-            i_we => r_button,
-            o_cs => r_cs);
-
-
+    -- TODO: 
     SPI_data : entity spi_sdio
         generic map (
             g_clk_freq => g_clk_freq,
@@ -108,7 +93,6 @@ begin
         port map (
             i_clk => clk,
             i_cs => r_cs,
-            o_sclk => r_sclk,
             io_pin => data_io,
             i_data_transmit => r_transmit_data(15 downto 0),
             o_data_received => r_received_data,
@@ -180,7 +164,7 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                             c_DEVID_R,
                                             "00000000");
-                    if r_received_data = "11100101" or r_received_data = "10100111" then
+                    if r_received_data(0) = "11100101" or r_received_data(0) = "10100111" then
                         s_ctrl_state <= s_write_power_ctl;
                         -- s_ctrl_state <= s_read_devid;
                         -- s_ctrl_state <= s_read_x0;
@@ -248,13 +232,5 @@ begin
             end case;
         end if;
     end process p_data_ctrl;
-
-    -- uut:IOBUF
-    --     port map (
-    --         O => r_bidir_outp,
-    --         IO => data_io,
-    --         I => r_bidir_inp,
-    --         OEN => r_we
-    --         );
 
 end architecture;

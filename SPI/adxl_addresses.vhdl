@@ -3,7 +3,12 @@ use ieee.std_logic_1164.all;
 
 package adxl_addresses is
 
-    -- type t_adxl_data is std_logic_vector(15 downto 0);
+
+    type t_axis_data is record
+        old_data : std_logic_vector(15 downto 0);
+        new_data : std_logic_vector(15 downto 0);
+        DV : std_logic;
+    end record t_axis_data;
 
     constant c_READ                 : std_logic_vector(1 downto 0) := "01";
     constant c_WRITE                : std_logic_vector(1 downto 0) := "00";
@@ -53,15 +58,6 @@ end package adxl_addresses;
 
 package body adxl_addresses is
 
-    function getAddress(address : std_logic_vector(0 to 5)) 
-        return std_logic_vector is
-        variable tmp : std_logic_vector(5 downto 0);
-    begin
-        tmp := address;
-        return tmp;
-    end function;
-
-
     function setWriteVector(rw : std_logic_vector(1 downto 0);
                             address : std_logic_vector(5 downto 0);
                             data : std_logic_vector(7 downto 0))
@@ -72,4 +68,5 @@ package body adxl_addresses is
         tmp(15 downto 0)    := data & address & rw;
         return tmp;
     end function;
+
 end package body adxl_addresses;

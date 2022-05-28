@@ -1,5 +1,4 @@
 library ieee;
-use IEEE.float_pkg.all;
 use IEEE.fixed_pkg.all;
 use IEEE.std_logic_1164.all;
 
@@ -12,14 +11,12 @@ entity FIR_filter is
         i_clk : in std_logic;
         i_data : in std_logic_vector(g_data_width-1 downto 0);
         i_en : in std_logic;
-        o_data : out std_logic_vector(g_data_width-1 downto 0)
+        o_data : out std_logic_vector(g_data_width-1 downto 0);
+        o_DV : out std_logic
     );
 end entity;
 
 architecture rtl of FIR_filter is
-
-    type t_FIR_states is (s_idle, s_calc);
-    signal s_Fir_state : t_FIR_states := s_idle;
 
     signal r_data_out : std_logic_vector(g_data_width-1 downto 0);
     signal r_new_data : sfixed(g_data_width downto -8);
@@ -36,6 +33,7 @@ architecture rtl of FIR_filter is
 begin
 
     r_en <= i_en;
+    o_DV <= r_calc_done;
 
     -- Fixed point number 
     -- 0.96
@@ -58,7 +56,7 @@ begin
 
 
     calculate_moving_average : process(i_clk)
-        variable v_temp : sfixed(g_data_width downto -8);
+        variable v_counter := integer range 0 to 
     begin
         if rising_edge(i_clk) then
             if r_done = '0' then
@@ -66,10 +64,17 @@ begin
             end if;
             
             if r_calc_done = '0' then
-                r_new_data <= to_sfixed(i_data,g_data_width,-8);
-                r_old_data <= c_old_multiplier * r_old_data + c_new_multiplier * to_sfixed(i_data,g_data_width,-8);
-                r_data_out <= std_logic_vector(r_old_data(g_data_width-1 downto 0));
-                r_calc_done <= '1';
+                if v_counter = 0 then
+                    r_new_data <= to_sfixed(i_data,g_data_width,-8);
+                elsif v_counter = 1 then
+                    r_old_data <= c_old_multiplier * r_old_data + c_new_multiplier * r_new_data;
+                elsif v_counter < 5 then
+                elsif v_counter = 5 then
+                    v_counter := 0;
+                    r_data_out <= std_logic_vector(r_old_data(g_data_width-1 downto 0));
+                    r_calc_done <= '1';
+                end if;
+                v_counter := v_counter + 1;
             end if; -- r_done
         end if;
     end process;

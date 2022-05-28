@@ -13,7 +13,7 @@ entity transmit_top is
         i_button : in std_logic;
         o_TX : out std_logic;
         i_RX : in std_logic;
-        sdio : inout std_logic;
+        sdio : inout std_logic_vector(17 downto 0);
         o_sclk : out std_logic;
         o_cs : out std_logic
     );
@@ -49,6 +49,8 @@ architecture rtl of transmit_top is
     signal r_axis_data_non_filtered : std_logic_vector(g_data_width-1 downto 0);
     signal r_axis_data_filtered : std_logic_vector(g_data_width-1 downto 0);
     signal r_axis_enable : std_logic_vector(2 downto 0);
+
+    signal r_transmit_data : std_logic_vector(g_data_width-1 downto 0);
     
 
     component Gowin_OSC
@@ -75,6 +77,14 @@ begin
 
 
     r_button <= '0' when not i_button else '1';
+
+    o_sclk <= r_sclk;
+    r_TX_DV <= r_out_button;
+    -- r_TX_DV <= w_RX_DV;
+    o_TX <= w_TX_Serial;
+    r_RX_SERIAL <= i_RX;
+    -- r_TX_BYTE <= w_RX_BYTE;
+    r_TX_BYTE <= w_SPI_BYTE;
 
     -- Instantiate UART Receiver
     UART_RX_INST : entity uart_rx
@@ -103,6 +113,27 @@ begin
             o_tx_done   => w_TX_DONE
             );
 
+
+    CS_gen : entity spi_cs_generator
+        generic map (
+            g_clk_freq => g_clk_freq
+            )
+        port map (
+            i_clk => clk,
+            i_done => r_spi_dv,
+            i_we => r_button,
+            o_cs => r_cs);
+
+    SCLK_gen : entity spi_sclk_generator
+        generic map (
+            g_clk_freq => g_clk_freq
+            )
+        port map (
+            i_clk => clk,
+            i_cs => r_cs,
+            o_sclk => r_sclk);
+
+
     SPI_INST : entity spi_top
         generic map (
             g_clk_freq => c_CLK_FREQ,
@@ -112,19 +143,24 @@ begin
             i_clk => clk,
             data_io => sdio,
             i_button => r_button,
-            o_sclk => o_sclk,
-            o_cs => o_cs,
+            i_cs => r_cs,
             o_data => r_axis_data_non_filtered,
             o_data_axis =>  r_axis_enable,
             o_spi_dv => open
             );
 
+
+    -- TODO: Create a method how to send data to the PC, maybe a FIFO?
+    -- TODO: Need one for every axis of every accelerometer
+    -- unless the old data is passed in with the new data.
     GEN_FIR_FILTER: for I in 0 to 2 generate
         FIRX : FIR_filter port map (
             i_clk => clk, 
             i_data => r_axis_data_non_filtered,
             i_en => r_axis_enable(I),
-            o_data => r_axis_data_filtered);
+            o_data => r_axis_data_filtered,
+            o_dv => open
+            );
     end generate GEN_FIR_FILTER;
 
     
@@ -160,12 +196,5 @@ begin
             end case;
         end if;
     end process test_write;
-
-    r_TX_DV <= r_out_button;
-    -- r_TX_DV <= w_RX_DV;
-    o_TX <= w_TX_Serial;
-    r_RX_SERIAL <= i_RX;
-    -- r_TX_BYTE <= w_RX_BYTE;
-    r_TX_BYTE <= w_SPI_BYTE;
 
 end architecture rtl;
