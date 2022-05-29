@@ -5,7 +5,7 @@ package adxl_addresses is
 
 
     type t_axis_data is record
-        old_data : std_logic_vector(15 downto 0);
+        averaged_data : std_logic_vector(15 downto 0);
         new_data : std_logic_vector(15 downto 0);
         DV : std_logic;
     end record t_axis_data;

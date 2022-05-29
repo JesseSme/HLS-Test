@@ -44,6 +44,7 @@ architecture rtl of spi_top is
     signal s_ctrl_state : t_ctrl_state := s_write_data_format_reg;
 
     type t_received_data_array is array (17 downto 0) of std_logic_vector(7 downto 0);
+    type t_axis_data_array is array 
 
     -- Oscillator clock 120/60/30MHz
     signal clk : std_logic;
@@ -84,7 +85,7 @@ begin
     o_data_axis <= r_data_axis;
 
 
-    -- TODO: 
+    -- TODO:  Add generate for multiple pins
     SPI_data : entity spi_sdio
         generic map (
             g_clk_freq => g_clk_freq,
@@ -93,7 +94,7 @@ begin
         port map (
             i_clk => clk,
             i_cs => r_cs,
-            io_pin => data_io,
+            io_pin => data_io(0),
             i_data_transmit => r_transmit_data(15 downto 0),
             o_data_received => r_received_data,
             o_spi_dv => r_spi_dv
