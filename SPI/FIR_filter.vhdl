@@ -1,6 +1,6 @@
 library ieee;
-use IEEE.fixed_pkg.all;
 use IEEE.std_logic_1164.all;
+use IEEE.fixed_pkg.all;
 
 entity FIR_filter is
     generic (
@@ -56,7 +56,7 @@ begin
 
 
     calculate_moving_average : process(i_clk)
-        variable v_counter := integer range 0 to 
+        variable v_counter : integer range 0 to 5 := 0;
     begin
         if rising_edge(i_clk) then
             if r_done = '0' then
@@ -65,7 +65,7 @@ begin
             
             if r_calc_done = '0' then
                 if v_counter = 0 then
-                    r_new_data <= to_sfixed(i_data,g_data_width,-8);
+                    r_new_data <= to_sfixed(i_data, g_data_width, 2 );
                 elsif v_counter = 1 then
                     r_old_data <= c_old_multiplier * r_old_data + c_new_multiplier * r_new_data;
                 elsif v_counter < 5 then

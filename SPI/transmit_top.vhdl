@@ -45,6 +45,9 @@ architecture rtl of transmit_top is
 
     signal w_SPI_BYTE : std_logic_vector(7 downto 0) := (others => '0');
     signal r_SDIO : std_logic;
+    signal r_sclk : std_logic := '1';
+    signal r_cs : std_logic;
+    signal r_spi_dv : std_logic;
 
     signal r_axis_data_non_filtered : std_logic_vector(g_data_width-1 downto 0);
     signal r_axis_data_filtered : std_logic_vector(g_data_width-1 downto 0);
@@ -65,8 +68,9 @@ architecture rtl of transmit_top is
             i_clk : in std_logic;
             i_data : in std_logic_vector(g_data_width-1 downto 0);
             i_en : in std_logic;
-            o_data : out std_logic_vector(g_data_width-1 downto 0)
-        );
+            o_data : out std_logic_vector(g_data_width-1 downto 0);
+            o_DV : out std_logic
+            );
     end component;
     
 begin
@@ -116,7 +120,7 @@ begin
 
     CS_gen : entity spi_cs_generator
         generic map (
-            g_clk_freq => g_clk_freq
+            g_clk_freq => c_clk_freq
             )
         port map (
             i_clk => clk,
@@ -126,7 +130,7 @@ begin
 
     SCLK_gen : entity spi_sclk_generator
         generic map (
-            g_clk_freq => g_clk_freq
+            g_clk_freq => c_clk_freq
             )
         port map (
             i_clk => clk,
@@ -159,7 +163,7 @@ begin
             i_data => r_axis_data_non_filtered,
             i_en => r_axis_enable(I),
             o_data => r_axis_data_filtered,
-            o_dv => open
+            o_DV => open
             );
     end generate GEN_FIR_FILTER;
 

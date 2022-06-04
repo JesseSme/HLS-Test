@@ -44,8 +44,6 @@ package adxl_addresses is
     constant c_DATA_Z0_R            : std_logic_vector(0 to 5)  := "011011";
     constant c_DATA_Z1_R            : std_logic_vector(0 to 5)  := "111011";
 
-    function getAddress(address : std_logic_vector(0 to 5)) 
-        return std_logic_vector;
 
     function setWriteVector(rw : std_logic_vector(1 downto 0);
                           address : std_logic_vector(5 downto 0);

@@ -47,7 +47,7 @@ begin
                 -- Wait until CS goes down
                 when s_idle =>
                     r_sclk <= '1';
-                    s_half_sclk_counter <= 0;
+                    r_half_sclk_counter <= 0;
                     if r_cs = '0' then
                         r_sclk <= not r_sclk;
                         r_sclk_edge_counter <= r_sclk_edge_counter + 1;
@@ -62,10 +62,10 @@ begin
                     if r_cs = '1' then
                         s_sclk_state <= s_idle;
                     else
-                        s_half_sclk_counter <= s_half_sclk_counter + 1;
-                        if s_half_sclk_counter = c_half_sclk then
+                        r_half_sclk_counter <= r_half_sclk_counter + 1;
+                        if r_half_sclk_counter = c_half_sclk then
                             -- r_data_index <= r_data_index + 1;
-                            s_half_sclk_counter <= 0;
+                            r_half_sclk_counter <= 0;
                             r_sclk <= not r_sclk;
                         end if;
                     end if;

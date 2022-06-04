@@ -44,7 +44,7 @@ architecture rtl of spi_top is
     signal s_ctrl_state : t_ctrl_state := s_write_data_format_reg;
 
     type t_received_data_array is array (17 downto 0) of std_logic_vector(7 downto 0);
-    type t_axis_data_array is array 
+    type t_axis_data_array is array (17 downto 0) of t_axis_data;
 
     -- Oscillator clock 120/60/30MHz
     signal clk : std_logic;
@@ -63,8 +63,8 @@ architecture rtl of spi_top is
     signal r_received_data : t_received_data_array;
 
     -- DATA VALID FOR CS
-    -- signal r_spi_dv_vector : std_logic_vector
-    signal r_spi_dv : std_logic;
+    -- signal r_spi_dv_vector : std_logic_vector(17 downto 0);
+    signal r_spi_dv : std_logic_vector(17 downto 0);
 
     -- ENABLE REGISTER FOR CS
     signal r_we : std_logic;
@@ -78,7 +78,7 @@ begin
 
     r_cs <= i_cs;
 
-    r_transmit_data <= i_data_transmit;
+    -- r_transmit_data <= i_data_transmit;
     -- o_cs <= r_cs when r_button = '1' else '1';
 
     o_data <= r_single_axis_data;
@@ -96,8 +96,8 @@ begin
             i_cs => r_cs,
             io_pin => data_io(0),
             i_data_transmit => r_transmit_data(15 downto 0),
-            o_data_received => r_received_data,
-            o_spi_dv => r_spi_dv
+            o_data_received => r_received_data(0),
+            o_spi_dv => r_spi_dv(0)
             );
 
     -- A button debouncer
@@ -143,7 +143,7 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                         c_DATA_FORMAT_RW,
                                         "00000000");
-                    if r_received_data = "11000011" or r_received_data = "11000011" then
+                    if r_received_data(0) = "11000011" or r_received_data(0) = "11000011" then
                         s_ctrl_state <= s_write_bw_rate_reg;
                     else
                         if v_failed_to_read = 5 then
@@ -185,7 +185,7 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                         c_DATA_X0_R,
                                         "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
                     
                     -- s_ctrl_state <= s_read_x1;
                     
@@ -193,7 +193,7 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                         c_DATA_X1_R,
                                         "00000000");
-                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
                     r_data_axis <= "001";
                     s_ctrl_state <= s_read_y0;
 
@@ -202,14 +202,14 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                         c_DATA_Y0_R,
                                         "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
                     s_ctrl_state <= s_read_y1;
 
                 when s_read_y1 =>
                     r_transmit_data <= setWriteVector(c_READ,
                                     c_DATA_Y1_R,
                                     "00000000");
-                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
                     r_data_axis <= "010";
                     s_ctrl_state <= s_read_z0;
 
@@ -218,14 +218,14 @@ begin
                     r_transmit_data <= setWriteVector(c_READ,
                                     c_DATA_Z0_R,
                                     "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width) & r_received_data;
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
                     s_ctrl_state <= s_read_z1;
 
                 when s_read_z1 =>
                     r_transmit_data <= setWriteVector(c_READ,
                                     c_DATA_Z1_R,
                                     "00000000");
-                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
                     r_data_axis <= "100";
                     s_ctrl_state <= s_read_x0;
 
