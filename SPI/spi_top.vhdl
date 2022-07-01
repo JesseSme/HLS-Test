@@ -18,30 +18,35 @@ entity spi_top is
         i_button : in std_logic;
         -- SPI PINS
         data_io : inout std_logic_vector(17 downto 0);
-        i_cs : in std_logic;
+        o_cs : out std_logic;
+        o_sclk : out std_logic;
         -- SINGLE AXIS DATA OUT
         o_data : out std_logic_vector(g_data_width-1 downto 0);
-        -- ENABLE VECTOR FOR FIR_FILTERS
-        o_data_axis : out std_logic_vector(2 downto 0);
+        o_data_debug : out std_logic_vector((g_data_width/2)-1 downto 0);
         -- DATA VALID
-        o_spi_dv : out std_logic
+        o_spi_dv : out std_logic_vector(17 downto 0);
+        o_fir_dv : out std_logic_vector(17 downto 0)
     );
 end entity;
 
-architecture rtl of spi_top is
+architecture structural of spi_top is
 
     type t_ctrl_state is (s_read_devid,
                         s_write_power_ctl, 
+                        s_read_power_ctl,
                         s_write_data_format_reg,
                         s_read_data_format_reg,
                         s_write_bw_rate_reg,
+                        s_read_bw_rate_reg,
+                        s_write_init_power_ctl,
                         s_read_x0,
                         s_read_x1,
                         s_read_y0,
                         s_read_y1,
                         s_read_z0,
                         s_read_z1);
-    signal s_ctrl_state : t_ctrl_state := s_write_data_format_reg;
+    -- State machine 
+    signal s_ctrl_state : t_ctrl_state := s_write_init_power_ctl;
 
     type t_received_data_array is array (17 downto 0) of std_logic_vector(7 downto 0);
     type t_axis_data_array is array (17 downto 0) of t_axis_data;
@@ -57,36 +62,71 @@ architecture rtl of spi_top is
 
     -- SINGLE AXIS
     signal r_single_axis_data : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
+    signal r_single_axis_filtered_data : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
     signal r_data_axis : std_logic_vector(2 downto 0) := "000";
 
     -- DATA RECEIVED FROM SDIO
-    signal r_received_data : t_received_data_array;
+    -- signal r_received_data : t_received_data_array;
+    signal r_received_data : std_logic_vector(7 downto 0);
+    signal r_padding : std_logic_vector(7 downto 0) := "10000101";
 
     -- DATA VALID FOR CS
     -- signal r_spi_dv_vector : std_logic_vector(17 downto 0);
-    signal r_spi_dv : std_logic_vector(17 downto 0);
+    signal r_spi_dv : std_logic_vector(17 downto 0) := (others => '0');
+    signal r_fir_dv : std_logic_vector(17 downto 0) := (others => '0');
 
     -- ENABLE REGISTER FOR CS
-    signal r_we : std_logic;
+    signal r_we : std_logic := '1';
     signal r_cs : std_logic;
+    signal r_sclk : std_logic;
 
+    -- FOR MANUAL ENABLING
     signal r_button : std_logic := '0';
+
+    procedure waitNextState (
+        -- Enable
+        signal enable       : in std_logic;
+        -- Control
+        signal control      : out t_ctrl_state;
+        constant next_state   : in t_ctrl_state;
+        constant old_state    : in t_ctrl_state) is
+    begin
+        if enable = '1' then
+            control <= next_state;
+        else
+            control <= old_state;
+        end if;
+    end procedure;
 
 begin
 
     clk <= i_clk;
 
-    r_cs <= i_cs;
+    o_sclk <= r_sclk;
+    o_cs <= r_cs;
+    -- r_cs <= i_cs;
 
     -- r_transmit_data <= i_data_transmit;
     -- o_cs <= r_cs when r_button = '1' else '1';
 
-    o_data <= r_single_axis_data;
-    o_data_axis <= r_data_axis;
+    o_data_debug <= r_received_data;
+    -- o_data <= r_single_axis_filtered_data;
+    o_data <= r_padding & r_received_data;
+    o_spi_dv <= r_spi_dv;
+    o_fir_dv <= r_fir_dv;
 
 
-    -- TODO:  Add generate for multiple pins
-    SPI_data : entity spi_sdio
+    CS_gen : entity spi_cs_generator
+        generic map (
+            g_clk_freq => g_clk_freq
+            )
+        port map (
+            i_clk => clk,
+            i_done => r_spi_dv(0),
+            i_we => r_button, -- r_we or r_button
+            o_cs => r_cs);
+
+    SCLK_gen : entity spi_sclk_generator
         generic map (
             g_clk_freq => g_clk_freq,
             g_sclk_freq => g_sclk_freq
@@ -94,11 +134,25 @@ begin
         port map (
             i_clk => clk,
             i_cs => r_cs,
-            io_pin => data_io(0),
-            i_data_transmit => r_transmit_data(15 downto 0),
-            o_data_received => r_received_data(0),
-            o_spi_dv => r_spi_dv(0)
-            );
+            o_sclk => r_sclk);
+
+    -- TODO:  Add generate for multiple pins
+    -- TODO: This shouldnt be duplicated. Instead the pins inside SPI_SDIO should be duplicated
+    -- GEN_SPI_PINS : for i in 0 to 17 generate
+        SPI_data : entity spi_sdio
+            generic map (
+                g_clk_freq => g_clk_freq,
+                g_sclk_freq => g_sclk_freq
+                )
+            port map (
+                i_clk => clk,
+                i_cs => r_cs,
+                io_pin => data_io(0),
+                i_data_transmit => r_transmit_data,
+                o_data_received => r_received_data,
+                o_spi_dv => r_spi_dv(0)
+                );
+    -- end generate;
 
     -- A button debouncer
     process (clk)
@@ -121,10 +175,13 @@ begin
 
 
     -- Process that reads the accelerators acceleration registers
-    p_data_ctrl : process (r_cs)
+    -- TODO: Add a delay to stall the reading of received data.
+    p_data_ctrl : process (i_clk)
         variable v_failed_to_read : integer range 0 to 5 := 0;
     begin
-        if rising_edge(r_cs) then
+        if r_button = '0' then
+            s_ctrl_state <= s_write_data_format_reg;
+        elsif rising_edge(i_clk) then
 
             case s_ctrl_state is
 
@@ -133,101 +190,129 @@ begin
                 -- via POWER_CTL register
 
                 -- Configuration and bidir pin verification
+                when s_write_init_power_ctl =>
+                    r_transmit_data <= setWriteVector(c_WRITE, c_POWER_CTL_RW, "00000000");
+                    -- waitNextState(r_spi_dv(0), s_ctrl_state, s_write_data_format_reg, s_write_init_power_ctl);
+                    if r_spi_dv(0) = '1' then
+                        s_ctrl_state <= s_write_data_format_reg;
+                    else
+                        s_ctrl_state <= s_write_init_power_ctl;
+                    end if;
+
                 when s_write_data_format_reg => 
-                    r_transmit_data <= setWriteVector(c_WRITE, 
-                                            c_DATA_FORMAT_RW,
-                                            "11000011");
-                    s_ctrl_state <= s_read_data_format_reg;
+                    r_transmit_data <= setWriteVector(c_WRITE, c_DATA_FORMAT_RW, "11000011");
+                    -- s_new_state <= s_read_data_format_reg;
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_data_format_reg, s_write_data_format_reg);
+                    -- s_ctrl_state <= s_read_data_format_reg;
+
 
                 when s_read_data_format_reg =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                        c_DATA_FORMAT_RW,
-                                        "00000000");
-                    if r_received_data(0) = "11000011" or r_received_data(0) = "11000011" then
-                        s_ctrl_state <= s_write_bw_rate_reg;
-                    else
-                        if v_failed_to_read = 5 then
-                            v_failed_to_read := 0;
-                            s_ctrl_state <= s_write_data_format_reg;
-                        else 
-                            v_failed_to_read := v_failed_to_read + 1;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_FORMAT_RW, "00000000");
+
+                    if r_spi_dv(0) = '1' then
+                        if r_received_data = "11000011" then
+                            -- s_ctrl_state <= s_read_data_format_reg;
+                            s_ctrl_state <= s_write_bw_rate_reg;
+                        else
+                            s_ctrl_state <= s_read_data_format_reg;
                         end if;
+                    else
+                        s_ctrl_state <= s_read_data_format_reg;
                     end if;
                             
 
                 when s_write_bw_rate_reg =>
-                    r_transmit_data <= setWriteVector(c_WRITE,
-                                            c_BW_RATE_RW,
-                                            "11110000");
-                    s_ctrl_state <= s_read_devid;
+                    r_transmit_data <= setWriteVector(c_WRITE, c_BW_RATE_RW, "11110000");
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_bw_rate_reg, s_write_bw_rate_reg);
+
+                when s_read_bw_rate_reg =>
+                    r_transmit_data <= setWriteVector(c_READ, c_BW_RATE_RW, "00000000");
+                    if r_spi_dv(0) = '1' then
+                        if r_received_data = "11110000" then
+                            -- s_ctrl_state <= s_read_bw_rate_reg;
+                            s_ctrl_state <= s_read_devid;
+                        else
+                            s_ctrl_state <= s_read_bw_rate_reg;
+                        end if;
+                    else
+                        s_ctrl_state <= s_read_bw_rate_reg;
+                    end if;
+
+
 
                 when s_read_devid =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                            c_DEVID_R,
-                                            "00000000");
-                    if r_received_data(0) = "11100101" or r_received_data(0) = "10100111" then
-                        s_ctrl_state <= s_write_power_ctl;
-                        -- s_ctrl_state <= s_read_devid;
-                        -- s_ctrl_state <= s_read_x0;
+                    r_transmit_data <= setWriteVector(c_READ, c_DEVID_R, "00000000");
+                    
+                    if r_spi_dv(0) = '1'then
+                        if r_received_data = "10100111" then
+                            s_ctrl_state <= s_write_power_ctl;
+                            -- s_ctrl_state <= s_read_devid;
+                            -- s_ctrl_state <= s_read_x0;
+                        else
+                            s_ctrl_state <= s_read_devid;
+                        end if;
                     else
                         s_ctrl_state <= s_read_devid;
                     end if;
 
                 when s_write_power_ctl => 
-                    r_transmit_data <= setWriteVector(c_WRITE,
-                                            c_POWER_CTL_RW,
-                                            "00010000");
-                    s_ctrl_state <= s_read_x0;
+                    r_transmit_data <= setWriteVector(c_WRITE, c_POWER_CTL_RW, "00010000");
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_power_ctl, s_write_power_ctl);
+
+                when s_read_power_ctl =>
+                    r_transmit_data <= setWriteVector(c_READ, c_POWER_CTL_RW, "00000000");
+                    if r_spi_dv(0) = '1' then
+                        if r_received_data = "00010000" then
+                            s_ctrl_state <= s_read_power_ctl;
+                            -- s_ctrl_state <= s_read_x0;
+                        else
+                            s_ctrl_state <= s_write_power_ctl;
+                        end if;
+                    else
+                        s_ctrl_state <= s_read_power_ctl;
+                    end if;
 
                 -- Read loop
-                -- X-AXIS
+                -- X-AXIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 when s_read_x0 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                        c_DATA_X0_R,
-                                        "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
-                    
-                    -- s_ctrl_state <= s_read_x1;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_X0_R, "00000000");
+                    -- r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data;
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_x1, s_read_x0);
                     
                 when s_read_x1 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                        c_DATA_X1_R,
-                                        "00000000");
-                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
-                    r_data_axis <= "001";
-                    s_ctrl_state <= s_read_y0;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_X1_R, "00000000");
+                    -- r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    -- s_new_state <= s_read_x0;
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_x0, s_read_x1);
+                    if r_spi_dv(0) = '1' then
+                        r_fir_dv(0) <= '1';
+                    else
+                        r_fir_dv(0) <= '0';
+                    end if;
 
-                -- Y-AXIS
+
+                -- Y-AXIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 when s_read_y0 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                        c_DATA_Y0_R,
-                                        "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
-                    s_ctrl_state <= s_read_y1;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_Y0_R, "00000000");
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data;
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_y1, s_read_y0);
 
                 when s_read_y1 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                    c_DATA_Y1_R,
-                                    "00000000");
-                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
-                    r_data_axis <= "010";
-                    s_ctrl_state <= s_read_z0;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_Y1_R, "00000000");
+                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_z0, s_read_y1);
 
-                -- Z-AXIS
+
+                -- Z-AXIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 when s_read_z0 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                    c_DATA_Z0_R,
-                                    "00000000");
-                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data(0);
-                    s_ctrl_state <= s_read_z1;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_Z0_R, "00000000");
+                    r_single_axis_data <= r_single_axis_data(g_data_width-1 downto g_data_width/2) & r_received_data;
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_z1, s_read_z0);
 
                 when s_read_z1 =>
-                    r_transmit_data <= setWriteVector(c_READ,
-                                    c_DATA_Z1_R,
-                                    "00000000");
-                    r_single_axis_data <= r_received_data(0) & r_single_axis_data((g_data_width/2)-1 downto 0);
-                    r_data_axis <= "100";
-                    s_ctrl_state <= s_read_x0;
+                    r_transmit_data <= setWriteVector(c_READ, c_DATA_Z1_R, "00000000");
+                    r_single_axis_data <= r_received_data & r_single_axis_data((g_data_width/2)-1 downto 0);
+                    waitNextState(r_spi_dv(0), s_ctrl_state, s_read_x0, s_read_z1);
 
 
             end case;

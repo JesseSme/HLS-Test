@@ -22,7 +22,7 @@ package adxl_addresses is
     constant c_DUR_RW               : std_logic_vector(0 to 5)  := "100001";
     constant c_LATENT_RW            : std_logic_vector(0 to 5)  := "010001";
     constant c_WINDOW_RW            : std_logic_vector(0 to 5)  := "110001";
-    constant c_THRESH_ACT_RW        : std_logic_vector(0 to 5)  := "001001"; -- All the above flipped
+    constant c_THRESH_ACT_RW        : std_logic_vector(0 to 5)  := "001001";
     constant c_THRESH_INACT_RW      : std_logic_vector(0 to 5)  := "101001";
     constant c_TIME_INACT_RW        : std_logic_vector(0 to 5)  := "011001";
     constant c_ACT_INACT_CTL_RW     : std_logic_vector(0 to 5)  := "111001";
@@ -30,12 +30,12 @@ package adxl_addresses is
     constant c_TIME_FF_RW           : std_logic_vector(0 to 5)  := "101001";
     constant c_TAP_AXES_RW          : std_logic_vector(0 to 5)  := "010101";
     constant c_ACT_TAP_STATUS_RW    : std_logic_vector(0 to 5)  := "110101";
-    constant c_BW_RATE_RW           : std_logic_vector(0 to 5)  := "001101"; -- Flipped
+    constant c_BW_RATE_RW           : std_logic_vector(0 to 5)  := "001101";
     constant c_POWER_CTL_RW         : std_logic_vector(0 to 5)  := "101101"; 
     constant c_INT_ENABLE_RW        : std_logic_vector(0 to 5)  := "011101";
     constant c_INT_MAP_RW           : std_logic_vector(0 to 5)  := "111101";
     constant c_INT_SOURCE_R         : std_logic_vector(0 to 5)  := "000011";
-    constant c_DATA_FORMAT_RW       : std_logic_vector(0 to 5)  := "100011"; -- Flipped
+    constant c_DATA_FORMAT_RW       : std_logic_vector(0 to 5)  := "100011";
     
     constant c_DATA_X0_R            : std_logic_vector(0 to 5)  := "010011";
     constant c_DATA_X1_R            : std_logic_vector(0 to 5)  := "110011";

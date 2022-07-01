@@ -48,6 +48,7 @@ begin
                 when s_idle =>
                     r_sclk <= '1';
                     r_half_sclk_counter <= 0;
+                    r_sclk_edge_counter <= 0;
                     if r_cs = '0' then
                         r_sclk <= not r_sclk;
                         r_sclk_edge_counter <= r_sclk_edge_counter + 1;
@@ -65,8 +66,13 @@ begin
                         r_half_sclk_counter <= r_half_sclk_counter + 1;
                         if r_half_sclk_counter = c_half_sclk then
                             -- r_data_index <= r_data_index + 1;
-                            r_half_sclk_counter <= 0;
-                            r_sclk <= not r_sclk;
+                            if r_sclk_edge_counter = c_dw_x2 then
+                                r_sclk <= '1';
+                            else
+                                r_sclk_edge_counter <= r_sclk_edge_counter + 1;
+                                r_half_sclk_counter <= 0;
+                                r_sclk <= not r_sclk;
+                            end if;
                         end if;
                     end if;
             end case;

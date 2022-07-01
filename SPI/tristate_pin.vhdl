@@ -19,9 +19,9 @@ BEGIN
 
     -- process(i_clk)
     -- begin
-        -- if rising_edge(i_clk) then
+    --     if rising_edge(i_clk) then
             io_pin <= o_bit when i_en = '1' else 'Z';
             i_bit <= io_pin;
-        -- end if;
+    --     end if;
     -- end process;
 END maxpld;

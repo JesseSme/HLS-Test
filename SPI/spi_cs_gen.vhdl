@@ -23,58 +23,44 @@ architecture rtl of spi_cs_generator is
     -- Amount of clock cycles between pulling CS down
     constant c_cs_freq : integer := (g_clk_freq/g_cs_freq);
     constant c_clk_in_ns :integer := (1_000_000_000/g_clk_freq);
-    constant c_cs_deassertion_max : integer := (150/c_clk_in_ns)+1;
+    constant c_cs_deassertion_max : integer := (150/c_clk_in_ns)+5;
+
+    signal r_cs_counter : integer range 0 to c_cs_freq := 0;
 
     signal r_cs : std_logic := '1';
     signal r_done : std_logic;
+    signal r_we : std_logic;
 
 begin
     o_cs <= r_cs;
     r_done <= i_done;
+    r_we <= i_we;
 
 
     p_generate_cs : process(i_clk)
-        -- Clock cycles between readings
-        variable v_cs_counter : integer range 0 to c_cs_freq := 0;
         -- Clock cycles between reads. MIN 150ns
-        variable v_cs_deassertion_counter : integer range 0 to c_cs_deassertion_max;
-        -- Amount of axis to read
-        variable v_axis_count : integer range 0 to 5 := 0;
     begin
         if rising_edge(i_clk) then
             case s_cs_state is
                 when s_idle =>
-                    if i_we = '1' then
+                    if r_we = '1' then
                         r_cs <= '1';
-                        if v_cs_counter = c_cs_freq then
-                            v_cs_counter := 0;
+                        if r_cs_counter = c_cs_freq then
+                            r_cs_counter <= 0;
                             s_cs_state <= s_cs;
                         else
-                            v_cs_counter := v_cs_counter + 1;
+                            r_cs_counter <= r_cs_counter + 1;
                         end if;
                     else
-                        v_axis_count := 0;
-                        v_cs_counter := 0;
+                        r_cs_counter <= 0;
                         r_cs <= '1';
                     end if;
 
                 when s_cs =>
                     r_cs <= '0';
 
-                    if r_done = '1' and v_axis_count = 5 then
+                    if r_done = '1' then
                         s_cs_state <= s_idle;
-                    elsif r_done = '1' then
-                        v_axis_count := v_axis_count + 1;
-                        s_cs_state <= s_cs_deassertion;
-                    end if;
-
-                when s_cs_deassertion =>
-                    r_cs <= '1';
-                    if v_cs_deassertion_counter = c_cs_deassertion_max then
-                        v_cs_deassertion_counter := 0;
-                        s_cs_state <= s_cs;
-                    else
-                        v_cs_deassertion_counter := v_cs_deassertion_counter + 1;
                     end if;
             end case;
         end if;
