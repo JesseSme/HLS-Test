@@ -89,102 +89,121 @@ R19
 !i113 0
 R11
 Efir_filter
-Z21 w1653685539
-Z22 DPx4 ieee 17 fixed_float_types 0 22 j<WD5SZ6`I4KC;8P]h@_10
-Z23 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
-R2
+Z21 w1654700178
+Z22 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
 R1
-Z24 DPx4 ieee 17 fixed_generic_pkg 0 22 Rl?j<5:i_L<aE9]<7A]V?0
-Z25 DPx4 ieee 9 fixed_pkg 0 22 c`b>2Shb`ic5KAcV=K;Co1
-!i122 14
-R0
-Z26 8fir_filter.vhdl
-Z27 Ffir_filter.vhdl
+R2
+!i122 28
+Z23 dD:/HLS-Test/SPI
+Z24 8D:/HLS-Test/SPI/FIR_filter.vhdl
+Z25 FD:/HLS-Test/SPI/FIR_filter.vhdl
 l0
 L5 1
-V8D;E<=6JbnSE2L7`Y^o5P1
-!s100 ?WO]_OGLzdaXHXQVVj;km2
+VKhnoBa>E3dG2Bl`K8`[SH0
+!s100 mAI`aNj1H91PIPzeolNj62
 R6
 32
-Z28 !s110 1653685543
+Z26 !s110 1654968129
 !i10b 1
-Z29 !s108 1653685543.000000
-Z30 !s90 -reportprogress|300|fir_filter.vhdl|
-Z31 !s107 fir_filter.vhdl|
+Z27 !s108 1654968129.000000
+Z28 !s90 -reportprogress|300|D:/HLS-Test/SPI/FIR_filter.vhdl|
+!s107 D:/HLS-Test/SPI/FIR_filter.vhdl|
 !i113 0
-R11
+Z29 tExplicit 1 NoVital 1 NoCoverage 1 CvgOpt 0
 Artl
 R22
-R23
-R2
 R1
-R24
-R25
-DEx4 work 10 fir_filter 0 22 8D;E<=6JbnSE2L7`Y^o5P1
-!i122 14
-l35
-L18 59
-VJR@^lQDE`Q=MzIf<zhQ2D1
-!s100 blKg4<8J`oAaC@nISAEkQ3
+R2
+Z30 DEx4 work 10 fir_filter 0 22 KhnoBa>E3dG2Bl`K8`[SH0
+!i122 28
+l39
+L19 57
+VibUhWCO^i_R8Tlag1H?972
+!s100 fDSL7[K<il[MmmXYYL=RX1
 R6
 32
-R28
+R26
 !i10b 1
-R29
-R30
-R31
+R27
+R28
+Z31 !s107 D:/HLS-Test/SPI/FIR_filter.vhdl|
 !i113 0
-R11
-Espi_cs_generator
-Z32 w1653683737
+R29
+Pfixed_generic_pkg_mod
+Z32 DPx4 ieee 17 fixed_float_types 0 22 j<WD5SZ6`I4KC;8P]h@_10
 R22
+R2
+R1
+DPx4 ieee 9 math_real 0 22 gNk<PdFJ<XNPcfef`f?Z81
+!i122 23
+w1654254446
 R23
-R24
-R25
+8D:/HLS-Test/SPI/718293_001_fixed_generic_pkg_mod.vhdl
+FD:/HLS-Test/SPI/718293_001_fixed_generic_pkg_mod.vhdl
+l0
+L50 1
+VEmgnA@d31^NM?7>hz9i=f1
+!s100 <OYdd[R<neT9oEkkMSU]?0
+R6
+33
+b1
+!s110 1654449659
+!i10b 1
+!s108 1654449659.000000
+!s90 -reportprogress|300|D:/HLS-Test/SPI/718293_001_fixed_generic_pkg_mod.vhdl|
+!s107 D:/HLS-Test/SPI/718293_001_fixed_generic_pkg_mod.vhdl|
+!i113 0
+tExplicit 1 NoCoverage 1 CvgOpt 0
+Espi_cs_generator
+Z33 w1653683737
+R32
+R22
+Z34 DPx4 ieee 17 fixed_generic_pkg 0 22 Rl?j<5:i_L<aE9]<7A]V?0
+Z35 DPx4 ieee 9 fixed_pkg 0 22 c`b>2Shb`ic5KAcV=K;Co1
 R1
 R2
 !i122 20
 R0
-Z33 8spi_cs_gen.vhdl
-Z34 Fspi_cs_gen.vhdl
+Z36 8spi_cs_gen.vhdl
+Z37 Fspi_cs_gen.vhdl
 l0
 L5 1
 Vck_EgdCgfH3k`9D`L<VWB3
 !s100 KjH;jQGB2fGVXW2[SF^_30
 R6
 32
-Z35 !s110 1653769570
+Z38 !s110 1653769570
 !i10b 1
-Z36 !s108 1653769569.000000
-Z37 !s90 -reportprogress|300|spi_cs_gen.vhdl|
-!s107 spi_cs_gen.vhdl|
+Z39 !s108 1653769569.000000
+Z40 !s90 -reportprogress|300|spi_cs_gen.vhdl|
+Z41 !s107 spi_cs_gen.vhdl|
 !i113 0
 R11
 Artl
+R32
 R22
-R23
-R24
-R25
+R34
+R35
 R1
 R2
-Z38 DEx4 work 16 spi_cs_generator 0 22 ck_EgdCgfH3k`9D`L<VWB3
+Z42 DEx4 work 16 spi_cs_generator 0 22 ck_EgdCgfH3k`9D`L<VWB3
 !i122 20
 l32
-Z39 L19 66
-Z40 V>Ho9c[Wbkmfn5bXEjYMkZ1
-Z41 !s100 ]fDP`nB:e?hUK^S>C@b672
+L19 66
+V>Ho9c[Wbkmfn5bXEjYMkZ1
+!s100 ]fDP`nB:e?hUK^S>C@b672
 R6
 32
-R35
+R38
 !i10b 1
-R36
-R37
-Z42 !s107 spi_cs_gen.vhdl|
+R39
+R40
+R41
 !i113 0
 R11
 Espi_sdio
 Z43 w1653767033
-R23
+R22
 R1
 R2
 !i122 19
@@ -206,7 +225,7 @@ Z49 !s107 spi_sdio.vhdl|
 R11
 Artl
 R20
-R23
+R22
 R1
 R2
 DEx4 work 8 spi_sdio 0 22 4=I^SQ;:U_QGDZhDLVb>=2
@@ -248,11 +267,11 @@ R6
 R11
 Artl
 DEx4 work 8 spi_sdio 0 22 ;2CeC1RF>H9gcY`2HE=<@2
+R32
 R22
-R23
-R24
-R25
-R38
+R34
+R35
+R42
 R12
 R1
 R2
@@ -264,11 +283,11 @@ VLDF`]I@5J@0;c3_Yf1AEj0
 !s100 M9>bIRO6Q9e`Yh=OzHMi93
 R6
 32
-Z51 !s110 1653684151
+!s110 1653684151
 !i10b 1
-Z52 !s108 1653684151.000000
-Z53 !s90 -reportprogress|300|spi_cs_gen.vhdl|spi_sclk_gen.vhdl|spi_sclk_gen.vhdl|spi_top.vhdl|
-Z54 !s107 spi_top.vhdl|spi_sclk_gen.vhdl|spi_cs_gen.vhdl|
+!s108 1653684151.000000
+!s90 -reportprogress|300|spi_cs_gen.vhdl|spi_sclk_gen.vhdl|spi_sclk_gen.vhdl|spi_top.vhdl|
+!s107 spi_top.vhdl|spi_sclk_gen.vhdl|spi_cs_gen.vhdl|
 !i113 0
 R11
 Fspi_top.vhdl

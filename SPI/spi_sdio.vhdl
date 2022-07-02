@@ -27,7 +27,7 @@ end entity spi_sdio;
 
 architecture rtl of spi_sdio is
 
-    type t_data_handle_states is (s_idle, s_first_bit, s_do_spi, s_write_data, s_done);
+    type t_data_handle_states is (s_idle, s_first_bit, s_do_spi, s_data_valid, s_done);
     signal s_data_handle_state : t_data_handle_states := s_idle;
 
     constant c_sclk_freq : integer := (g_clk_freq/g_sclk_freq);
@@ -140,16 +140,17 @@ begin
                             end if;
 
                         elsif r_sclk_edge_counter = c_dw_x2 then
-                            s_data_handle_state <= s_done;
+                            s_data_handle_state <= s_data_valid;
                         end if;
 
                     end if;
                 
-                when s_write_data =>
+                when s_data_valid =>
+                    r_spi_dv <= '1';
                     s_data_handle_state <= s_done;
 
                 when s_done =>
-                    r_spi_dv <= '1';
+                    r_spi_dv <= '0';
                     r_we <= '0';
                     if r_cs = '1' then
                         s_data_handle_state <= s_idle;

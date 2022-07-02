@@ -23,7 +23,7 @@ entity transmit_top is
     );
 end entity transmit_top;
 
-architecture structural of transmit_top is
+architecture top of transmit_top is
 
     type t_passthrough_ctrl is (s_Idle, s_Start, s_Wait);
     signal r_passthrough_ctrl : t_passthrough_ctrl := s_Idle;

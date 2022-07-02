@@ -88,7 +88,7 @@ begin
                     r_TX_DV <= '0';
 
                     if r_we = '1' then
-                        s_uart_state <= s_send_1st_half;
+                        s_uart_state <= s_send_2nd_half;
                     else 
                         s_uart_state <= s_idle;
                     end if;
