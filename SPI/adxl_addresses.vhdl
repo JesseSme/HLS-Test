@@ -4,11 +4,9 @@ use ieee.std_logic_1164.all;
 package adxl_addresses is
 
 
-    type t_axis_data is record
-        averaged_data : std_logic_vector(15 downto 0);
-        new_data : std_logic_vector(15 downto 0);
-        DV : std_logic;
-    end record t_axis_data;
+    type t_fir_enable is array (17 downto 0) of std_logic;
+    type t_axis_data_array is array (17 downto 0) of std_logic_vector(47 downto 0);
+
 
     constant c_READ                 : std_logic_vector(1 downto 0) := "01";
     constant c_WRITE                : std_logic_vector(1 downto 0) := "00";
