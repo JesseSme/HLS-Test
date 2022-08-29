@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 entity spi_cs_generator is
     generic (
         g_clk_freq : integer := 120_000_000;
-        g_cs_freq : integer := 3200
+        g_cs_freq : integer := 1600
         );
     port (
         i_clk : in std_logic;
@@ -39,6 +39,7 @@ begin
 
     p_generate_cs : process(i_clk)
         -- Clock cycles between reads. MIN 150ns
+        variable v_deassertation_counter : integer range 0 to c_cs_deassertion_max := 0;
     begin
         if rising_edge(i_clk) then
             case s_cs_state is
@@ -60,7 +61,16 @@ begin
                     r_cs <= '0';
 
                     if r_done = '1' then
+                        s_cs_state <= s_cs_deassertion;
+                    end if;
+                
+                when s_cs_deassertion =>
+                    r_cs <= '1';
+
+                    if v_deassertation_counter = c_cs_deassertion_max then
                         s_cs_state <= s_idle;
+                    else
+                        v_deassertation_counter := v_deassertation_counter + 1;
                     end if;
             end case;
         end if;

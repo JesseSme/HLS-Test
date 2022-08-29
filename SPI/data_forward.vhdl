@@ -1,12 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use work.all;
+
 use work.alpha_hex.all;
+use work.adxl_addresses.all;
 
 entity data_forward is
     generic (
         g_data_width        : integer := 16;
-        g_marked_data_width : integer := g_data_width+8;
+        g_marked_data_width : integer := g_data_width+16;
         g_full_data_width   : integer := g_data_width*3;
         g_alpha_marker      : std_logic_vector(7 downto 0) := c_A
     );
@@ -29,6 +30,9 @@ architecture structural of data_forward is
     type t_data_forward_state is (s_idle, s_setup, s_forward);
     signal s_data_forward_state : t_data_forward_state := s_idle;
 
+    type t_xyz_array is array (2 downto 0) of std_logic_vector(7 downto 0);
+    signal r_xyz_array : t_xyz_array := (c_Z, c_Y, c_X);
+
     -- signal s_fir_enable_array : t_fir_enable_array;
     -- signal s_axis_data_array : t_axis_data_array;
 
@@ -37,7 +41,7 @@ architecture structural of data_forward is
     signal r_en : std_logic := '0';
     signal r_fifo_enable : std_logic := '0';
     signal r_data_in : std_logic_vector(g_full_data_width-1 downto 0) := (others => '0');
-    signal r_data_out : std_logic_vector(g_data_width-1 downto 0) := (others => '0');
+    signal r_data_out : std_logic_vector(g_data_width+8-1 downto 0) := (others => '0');
 
 
 begin
@@ -58,26 +62,36 @@ begin
             case s_data_forward_state is
                 when s_idle =>
                     r_fifo_enable <= '0';
-                    r_counter <= 0;
+                    r_counter <= 2;
                     if r_en = '1' then
                         s_data_array(2) <= r_data_in(47 downto 32);
                         s_data_array(1) <= r_data_in(31 downto 16);
                         s_data_array(0) <= r_data_in(15 downto 0);
-                        s_data_forward_state <= s_setup;
+                        s_data_forward_state <= s_forward;
                     else
                         s_data_forward_state <= s_idle;
                     end if;
 
                 when s_setup =>
-                    r_data_out <= s_data_array(r_counter);
+                    r_fifo_enable <= '0';
+
+                    -- r_data_out <= r_xyz_array(r_counter) & s_data_array(r_counter);
                     s_data_forward_state <= s_forward;
 
                 when s_forward =>
-                    r_counter <= r_counter + 1;
+                    if r_counter = 0 then
+                        r_data_out <= c_X & s_data_array(r_counter);
+                    elsif r_counter = 1 then
+                        r_data_out <= c_Y & s_data_array(r_counter);
+                    elsif r_counter = 2 then
+                        r_data_out <= c_Z & s_data_array(r_counter);
+                    end if;
+                    r_counter <= r_counter - 1;
                     r_fifo_enable <= '1';
-                    r_data_out <= s_data_array(r_counter);
-                    if r_counter = 2 then
+                    if r_counter = 0 then
                         s_data_forward_state <= s_idle;
+                    else
+                        s_data_forward_state <= s_setup;
                     end if;
                     
             end case;

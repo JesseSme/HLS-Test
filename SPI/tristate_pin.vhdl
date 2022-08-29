@@ -3,7 +3,6 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
-
 ENTITY bidir IS
     PORT (
         -- i_clk : IN STD_LOGIC;
@@ -16,12 +15,6 @@ END bidir;
 
 ARCHITECTURE maxpld OF bidir IS
 BEGIN
-
-    -- process(i_clk)
-    -- begin
-    --     if rising_edge(i_clk) then
-            io_pin <= o_bit when i_en = '1' else 'Z';
-            i_bit <= io_pin;
-    --     end if;
-    -- end process;
+    io_pin <= o_bit when i_en = '1' else 'Z';
+    i_bit <= io_pin;
 END maxpld;

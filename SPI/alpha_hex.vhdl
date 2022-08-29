@@ -5,8 +5,8 @@ package alpha_hex is
 
     constant c_A : std_logic_vector(7 downto 0) := "01000001";
     constant c_B : std_logic_vector(7 downto 0) := "01000010";
-    constant c_C : std_logic_vector(7 downto 0):= "01000011";
-    constant c_D : std_logic_vector(7 downto 0):= "01000100";
+    constant c_C : std_logic_vector(7 downto 0) := "01000011";
+    constant c_D : std_logic_vector(7 downto 0) := "01000100";
     constant c_E : std_logic_vector(7 downto 0) := "01000101";
     constant c_F : std_logic_vector(7 downto 0) := "01000110";
     constant c_G : std_logic_vector(7 downto 0) := "01000111";

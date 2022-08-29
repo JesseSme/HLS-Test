@@ -1,9 +1,10 @@
 library ieee;
 use IEEE.std_logic_1164.all;
 
-library work;
-use work.all;
 use work.adxl_addresses.all;
+use work.spi_cs_generator;
+use work.spi_sclk_generator;
+use work.spi_sdio;
 
 entity spi_top is
     generic (
@@ -181,6 +182,7 @@ begin
     -- Process that reads the accelerators acceleration registers
     -- TODO: Add a delay to stall the reading of received data.
     p_data_ctrl : process (i_clk)
+        variable startup_sleep_counter : integer range 0 to g_clk_freq;
     begin
         if r_button = '0' then
             s_ctrl_state <= s_write_init_power_ctl;
@@ -194,8 +196,12 @@ begin
 
                 -- Configuration and bidir pin verification
                 when s_write_init_power_ctl =>
-                    r_transmit_data <= setWriteVector(c_WRITE, c_POWER_CTL_RW, "00000000");
-                    waitNextState(r_spi_dv(0), s_ctrl_state, s_write_data_format_reg, s_write_init_power_ctl);
+                    if startup_sleep_counter = g_clk_freq then
+                        s_ctrl_state <= s_write_data_format_reg;
+                    else
+                        s_ctrl_state <= s_write_init_power_ctl;
+                        startup_sleep_counter := startup_sleep_counter + 1;
+                    end if;
                     -- s_ctrl_state <= s_write_data_format_reg;
 
                 when s_write_data_format_reg => 
@@ -220,14 +226,14 @@ begin
                             
 
                 when s_write_bw_rate_reg =>
-                    r_transmit_data <= setWriteVector(c_WRITE, c_BW_RATE_RW, "01110000");
+                    r_transmit_data <= setWriteVector(c_WRITE, c_BW_RATE_RW, "00110000");
                     waitNextState(r_spi_dv(0), s_ctrl_state, s_read_bw_rate_reg, s_write_bw_rate_reg);
                     -- s_ctrl_state <= s_read_bw_rate_reg;
 
                 when s_read_bw_rate_reg =>
                     r_transmit_data <= setWriteVector(c_READ, c_BW_RATE_RW, "00000000");
                     if r_spi_dv(0) = '1' then
-                        if r_received_data = "01110000" then
+                        if r_received_data = "00110000" then
                             -- s_ctrl_state <= s_read_bw_rate_reg;
                             s_ctrl_state <= s_read_devid;
                         else
@@ -280,9 +286,10 @@ begin
                     r_fir_enable(0) <= '0';
                     
                     if r_spi_dv(0) = '1' then
-                        r_full_data((g_data_width/2)-1 downto 0) <= r_received_data; -- 7 downto 0
+                        r_full_data((g_data_width/2)-1 downto 0) <= flipStdVector(r_received_data); -- 7 downto 0
                         -- r_full_data((g_data_width/2)-1 downto 0) <= r_received_data(0) &r_received_data(1) &r_received_data(2) &r_received_data(3) &r_received_data(4) &r_received_data(5) &r_received_data(6) &r_received_data(7); -- 7 downto 0
                         s_ctrl_state <= s_read_x1;
+                        -- s_ctrl_state <= s_read_x0;
                     else
                         s_ctrl_state <= s_read_x0;
                     end if;
@@ -292,8 +299,9 @@ begin
                     r_fir_enable(0) <= '0';
 
                     if r_spi_dv(0) = '1' then
-                        r_full_data(g_data_width-1 downto g_data_width/2) <= r_received_data; -- 15 downto 8
+                        r_full_data(g_data_width-1 downto (g_data_width/2)) <= flipStdVector(r_received_data); -- 15 downto 8
                         -- r_full_data(g_data_width-1 downto g_data_width/2) <= r_received_data(0) &r_received_data(1) &r_received_data(2) &r_received_data(3) &r_received_data(4) &r_received_data(5) &r_received_data(6) &r_received_data(7); -- 15 downto 8
+                        -- s_ctrl_state <= s_read_x0;
                         s_ctrl_state <= s_read_y0;
                     else
                         s_ctrl_state <= s_read_x1;
@@ -309,7 +317,7 @@ begin
                         r_full_data((g_data_width+(g_data_width/2)-1) -- 23
                                     downto 
                                     g_data_width) -- 16
-                                    <= r_received_data;
+                                    <= flipStdVector(r_received_data);
                         s_ctrl_state <= s_read_y1;
                     else
                         s_ctrl_state <= s_read_y0;
@@ -322,7 +330,7 @@ begin
                         r_full_data((g_data_width*2)-1 -- 31
                                     downto 
                                     g_data_width+(g_data_width/2)) -- 24
-                                    <= r_received_data;
+                                    <= flipStdVector(r_received_data);
                         s_ctrl_state <= s_read_z0;
                     else
                         s_ctrl_state <= s_read_y1;
@@ -337,7 +345,7 @@ begin
                         r_full_data(((g_data_width*2)+(g_data_width/2)-1) -- 39
                                     downto 
                                     g_data_width*2) -- 32
-                                    <= r_received_data;
+                                    <= flipStdVector(r_received_data);
                         s_ctrl_state <= s_read_z1;
                     else
                         s_ctrl_state <= s_read_z0;
@@ -350,7 +358,7 @@ begin
                         r_full_data((g_data_width*3)-1 -- 47
                                     downto 
                                     g_data_width*2+(g_data_width/2)) -- 40
-                                    <= r_received_data;
+                                    <= flipStdVector(r_received_data);
                         s_ctrl_state <= s_activate_fir;
                     else
                         s_ctrl_state <= s_read_z1;
