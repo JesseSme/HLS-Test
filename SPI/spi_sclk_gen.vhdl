@@ -9,6 +9,7 @@ entity spi_sclk_generator is
         );
     port (
         i_clk : in std_logic;
+        i_rst : in std_logic;
         i_cs : in std_logic;
         o_sclk : out std_logic
         );
@@ -38,9 +39,14 @@ begin
     -- OUT SIGNALS
     o_sclk <= r_sclk;
 
-    p_generate_sclk : process(i_clk)
+    p_generate_sclk : process(i_clk, i_rst)
     begin
-        if rising_edge(i_clk) then
+        if i_rst = '1' then
+            r_sclk <= '1';
+            r_half_sclk_counter <= 0;
+            r_sclk_edge_counter <= 0;
+            s_sclk_state <= s_idle;
+        elsif rising_edge(i_clk) then
 
             case s_sclk_state is
 

@@ -5,9 +5,9 @@ use IEEE.numeric_std.all;
 entity FIR_filter is
     generic (
         g_data_width        : integer := 16;
-        g_filter_data_width : integer := g_data_width + 8;
-        g_result_data_width : integer := (g_filter_data_width * 2);
-        g_full_data_width   : integer := g_data_width * 3
+        g_filter_data_width : integer := 24; -- g_data_width + 8;
+        g_result_data_width : integer := 32; -- (g_filter_data_width * 2);
+        g_full_data_width   : integer := 48 -- g_data_width * 3
     );
     port (
         i_clk  : in std_logic;

@@ -13,10 +13,10 @@ entity transmit_top is
     );
     port (
         -- clk : in std_logic;
-        rst_n    : in std_logic;
+        rst_n : in std_logic;
         i_rst : in std_logic;
-        o_TX     : out std_logic;
-        i_RX     : in std_logic;
+        o_TX  : out std_logic;
+        i_RX  : in std_logic;
         -- sdio : inout std_logic_vector(17 downto 0);
         sdio : inout std_logic;
         -- debug : out std_logic_vector(7 downto 0);
@@ -70,7 +70,7 @@ architecture top of transmit_top is
 
     signal r_enable : std_logic := '1';
 
-    signal r_rst_n     : std_logic;
+    signal r_rst_n : std_logic;
 
     -- INTERNAL OSCILLATOR
     component Gowin_OSC
@@ -80,12 +80,12 @@ architecture top of transmit_top is
     end component;
     component Gowin_CLKDIV
         port (
-            clkout: out std_logic;
-            hclkin: in std_logic;
-            resetn: in std_logic
+            clkout : out std_logic;
+            hclkin : in std_logic;
+            resetn : in std_logic
         );
     end component;
-    signal clk : std_logic;
+    signal clk         : std_logic;
     signal clk_divided : std_logic;
 
     component FIFO_HS_Top
@@ -103,7 +103,7 @@ architecture top of transmit_top is
 
 begin -- BEGIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    r_rst_n    <= not i_rst;
+    r_rst_n     <= not i_rst;
     o_sclk      <= r_sclk;
     o_cs        <= r_cs;
     sdio        <= r_sdio(0);
@@ -114,10 +114,10 @@ begin -- BEGIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         oscout => clk
     );
     Clock_divider : Gowin_CLKDIV
-    port map (
+    port map(
         clkout => clk_divided,
         hclkin => clk,
-        resetn => open
+        resetn => r_rst_n
     );
 
     --! 
@@ -127,9 +127,8 @@ begin -- BEGIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             g_sclk_freq => c_SCLK_FREQ)
         port map(
             i_clk   => clk_divided,
+            i_rst   => r_rst_n,
             data_io => r_sdio,
-            --  i_rst        => r_button,
-            i_rst     => r_enable,
             o_cs         => r_cs,
             o_sclk       => r_sclk,
             o_data       => r_axis_data_non_filtered,
@@ -138,20 +137,22 @@ begin -- BEGIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             o_fir_enable => r_fir_enable
         );
 
-    -- --! Filter
-    -- e_FIR_filter : entity FIR_filter
-    --     port map(
-    --         i_clk  => clk,
-    --         i_data => r_axis_data_non_filtered,
-    --         i_en   => r_fir_enable(0),
-    --         o_data => r_axis_data_filtered,
-    --         o_DV   => r_fir_dv(0)
-    --     );
+    --! Filter
+    e_FIR_filter : entity FIR_filter
+        port map(
+            i_clk  => clk,
+            i_rst => r_rst_n,
+            i_data => r_axis_data_non_filtered,
+            i_en   => r_fir_enable(0),
+            o_data => r_axis_data_filtered,
+            o_DV   => r_fir_dv(0)
+        );
 
     --! writes filtered data/non-filtered data to fifo
     e_data_forward : entity data_forward
         port map(
             i_clk => clk_divided,
+            i_rst => r_rst_n,
             -- i_en_arr        : in t_fir_enable_array,
             i_en => r_fir_enable(0),
             -- i_en => r_fir_dv(0),

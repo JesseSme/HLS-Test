@@ -7,7 +7,7 @@ use work.adxl_addresses.all;
 entity data_forward is
     generic (
         g_data_width        : integer := 16;
-        g_marked_data_width : integer := g_data_width+16;
+        g_marked_data_width : integer := 32;
         g_full_data_width   : integer := g_data_width*3;
         g_alpha_marker      : std_logic_vector(7 downto 0) := c_A
     );

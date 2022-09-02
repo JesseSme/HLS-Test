@@ -11,13 +11,13 @@ entity spi_top is
         g_clk_freq : integer := 120_000_000;
         g_sclk_freq : integer := 1_000_000;
         g_data_width : integer := 16;
-        g_full_data_width : integer := g_data_width*3
+        g_full_data_width : integer := 48
     );
     port (
         -- CLK
         i_clk : in std_logic;
         -- BUTTON TO MANUALLY ENABLE SPI
-        i_button : in std_logic;
+        i_rst : in std_logic;
         -- SPI PINS
         data_io : inout std_logic_vector(17 downto 0);
         o_cs : out std_logic;
@@ -32,6 +32,8 @@ entity spi_top is
 end entity;
 
 architecture structural of spi_top is
+
+    -- Constants
 
     type t_ctrl_state is (s_read_devid,
                         s_write_power_ctl, 
@@ -127,6 +129,7 @@ begin
             )
         port map (
             i_clk => clk,
+            i_rst => i_rst,
             i_done => r_spi_dv(0),
             i_we => r_button, -- r_we or r_button
             o_cs => r_cs);
@@ -138,19 +141,21 @@ begin
             )
         port map (
             i_clk => clk,
+            i_rst => i_rst,
             i_cs => r_cs,
             o_sclk => r_sclk);
 
     -- TODO:  Add generate for multiple pins
     -- TODO: This shouldnt be duplicated. Instead the pins inside SPI_SDIO should be duplicated
     -- GEN_SPI_PINS : for i in 0 to 17 generate
-        SPI_data : entity spi_sdio
+        SPI_DATA_pin : entity spi_sdio
             generic map (
                 g_clk_freq => g_clk_freq,
                 g_sclk_freq => g_sclk_freq
                 )
             port map (
                 i_clk => clk,
+                i_rst => i_rst,
                 i_cs => r_cs,
                 io_pin => data_io(0),
                 i_data_transmit => r_transmit_data,
@@ -159,32 +164,13 @@ begin
                 );
     -- end generate;
 
-    -- A button debouncer
-    process (clk)
-        variable v_button_counter : integer range 0 to 1000 := 0;
-    begin
-        if rising_edge(clk) then
-            if i_button = '1' then
-                if v_button_counter = 1000 then
-                    r_button <= '1';
-                else
-                    v_button_counter := v_button_counter + 1;
-                end if;
-            else
-                -- s_ctrl_state <= s_write_data_format_reg;
-                v_button_counter := 0;
-                r_button <= '0';
-            end if;
-        end if;
-    end process;
-
 
     -- Process that reads the accelerators acceleration registers
     -- TODO: Add a delay to stall the reading of received data.
-    p_data_ctrl : process (i_clk)
+    p_data_ctrl : process (i_clk, i_rst)
         variable startup_sleep_counter : integer range 0 to g_clk_freq;
     begin
-        if r_button = '0' then
+        if i_rst = '1' then
             s_ctrl_state <= s_write_init_power_ctl;
         elsif rising_edge(i_clk) then
 
