@@ -1,0 +1,340 @@
+
+--------> /home/jese/Desktop/catapult/Mgc_home/pkgs/siflibs/ccs_in_v1.vhd 
+--------------------------------------------------------------------------------
+-- Catapult Synthesis - Sample I/O Port Library
+--
+-- Copyright (c) 2003-2017 Mentor Graphics Corp.
+--       All Rights Reserved
+--
+-- This document may be used and distributed without restriction provided that
+-- this copyright statement is not removed from the file and that any derivative
+-- work contains this copyright notice.
+--
+-- The design information contained in this file is intended to be an example
+-- of the functionality which the end user may study in preparation for creating
+-- their own custom interfaces. This design does not necessarily present a 
+-- complete implementation of the named protocol or standard.
+--
+--------------------------------------------------------------------------------
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all;
+
+PACKAGE ccs_in_pkg_v1 IS
+
+COMPONENT ccs_in_v1
+  GENERIC (
+    rscid    : INTEGER;
+    width    : INTEGER
+  );
+  PORT (
+    idat   : OUT std_logic_vector(width-1 DOWNTO 0);
+    dat    : IN  std_logic_vector(width-1 DOWNTO 0)
+  );
+END COMPONENT;
+
+END ccs_in_pkg_v1;
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all; -- Prevent STARC 2.1.1.2 violation
+
+ENTITY ccs_in_v1 IS
+  GENERIC (
+    rscid : INTEGER;
+    width : INTEGER
+  );
+  PORT (
+    idat  : OUT std_logic_vector(width-1 DOWNTO 0);
+    dat   : IN  std_logic_vector(width-1 DOWNTO 0)
+  );
+END ccs_in_v1;
+
+ARCHITECTURE beh OF ccs_in_v1 IS
+BEGIN
+
+  idat <= dat;
+
+END beh;
+
+
+--------> /home/jese/Desktop/catapult/Mgc_home/pkgs/siflibs/ccs_out_v1.vhd 
+--------------------------------------------------------------------------------
+-- Catapult Synthesis - Sample I/O Port Library
+--
+-- Copyright (c) 2003-2017 Mentor Graphics Corp.
+--       All Rights Reserved
+--
+-- This document may be used and distributed without restriction provided that
+-- this copyright statement is not removed from the file and that any derivative
+-- work contains this copyright notice.
+--
+-- The design information contained in this file is intended to be an example
+-- of the functionality which the end user may study in preparation for creating
+-- their own custom interfaces. This design does not necessarily present a 
+-- complete implementation of the named protocol or standard.
+--
+--------------------------------------------------------------------------------
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all;
+
+PACKAGE ccs_out_pkg_v1 IS
+
+COMPONENT ccs_out_v1
+  GENERIC (
+    rscid    : INTEGER;
+    width    : INTEGER
+  );
+  PORT (
+    dat    : OUT std_logic_vector(width-1 DOWNTO 0);
+    idat   : IN  std_logic_vector(width-1 DOWNTO 0)
+  );
+END COMPONENT;
+
+END ccs_out_pkg_v1;
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all; -- Prevent STARC 2.1.1.2 violation
+
+ENTITY ccs_out_v1 IS
+  GENERIC (
+    rscid : INTEGER;
+    width : INTEGER
+  );
+  PORT (
+    dat   : OUT std_logic_vector(width-1 DOWNTO 0);
+    idat  : IN  std_logic_vector(width-1 DOWNTO 0)
+  );
+END ccs_out_v1;
+
+ARCHITECTURE beh OF ccs_out_v1 IS
+BEGIN
+
+  dat <= idat;
+
+END beh;
+
+
+--------> /home/jese/Desktop/catapult/Mgc_home/pkgs/siflibs/mgc_io_sync_v2.vhd 
+--------------------------------------------------------------------------------
+-- Catapult Synthesis - Sample I/O Port Library
+--
+-- Copyright (c) 2003-2017 Mentor Graphics Corp.
+--       All Rights Reserved
+--
+-- This document may be used and distributed without restriction provided that
+-- this copyright statement is not removed from the file and that any derivative
+-- work contains this copyright notice.
+--
+-- The design information contained in this file is intended to be an example
+-- of the functionality which the end user may study in preparation for creating
+-- their own custom interfaces. This design does not necessarily present a 
+-- complete implementation of the named protocol or standard.
+--
+--------------------------------------------------------------------------------
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+PACKAGE mgc_io_sync_pkg_v2 IS
+
+COMPONENT mgc_io_sync_v2
+  GENERIC (
+    valid    : INTEGER RANGE 0 TO 1
+  );
+  PORT (
+    ld       : IN    std_logic;
+    lz       : OUT   std_logic
+  );
+END COMPONENT;
+
+END mgc_io_sync_pkg_v2;
+
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all; -- Prevent STARC 2.1.1.2 violation
+
+ENTITY mgc_io_sync_v2 IS
+  GENERIC (
+    valid    : INTEGER RANGE 0 TO 1
+  );
+  PORT (
+    ld       : IN    std_logic;
+    lz       : OUT   std_logic
+  );
+END mgc_io_sync_v2;
+
+ARCHITECTURE beh OF mgc_io_sync_v2 IS
+BEGIN
+
+  lz <= ld;
+
+END beh;
+
+
+--------> ./rtl.vhdl 
+-- ----------------------------------------------------------------------
+--  HLS HDL:        VHDL Netlister
+--  HLS Version:    2021.1_1/966904 Production Release
+--  HLS Date:       Thu Nov 11 21:13:39 PST 2021
+-- 
+--  Generated by:   jese@ubuntu
+--  Generated date: Wed Nov 23 11:51:29 2022
+-- ----------------------------------------------------------------------
+
+-- 
+-- ------------------------------------------------------------------
+--  Design Unit:    button_top_core
+-- ------------------------------------------------------------------
+
+LIBRARY IEEE;
+
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+
+USE work.ccs_in_pkg_v1.ALL;
+USE work.ccs_out_pkg_v1.ALL;
+USE work.mgc_io_sync_pkg_v2.ALL;
+
+
+ENTITY button_top_core IS
+  PORT(
+    clk : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    in_rsc_dat : IN STD_LOGIC;
+    in_rsc_triosy_lz : OUT STD_LOGIC;
+    return_rsc_dat : OUT STD_LOGIC;
+    return_rsc_triosy_lz : OUT STD_LOGIC
+  );
+END button_top_core;
+
+ARCHITECTURE v2 OF button_top_core IS
+  -- Default Constants
+
+  -- Interconnect Declarations
+  SIGNAL in_rsci_idat : STD_LOGIC;
+  SIGNAL return_rsci_idat : STD_LOGIC;
+  SIGNAL reg_return_rsc_triosy_obj_ld_cse : STD_LOGIC;
+
+  SIGNAL in_rsci_dat : STD_LOGIC ;
+  SIGNAL in_rsci_idat_1 : STD_LOGIC ;
+
+  SIGNAL return_rsci_idat_1 : STD_LOGIC ;
+  SIGNAL return_rsci_dat : STD_LOGIC ;
+
+BEGIN
+  in_rsci : work.ccs_in_pkg_v1.ccs_in_v1
+    GENERIC MAP(
+      rscid => 1,
+      width => 1
+      )
+    PORT MAP(
+      dat(0) => in_rsci_dat,
+      idat(0) => in_rsci_idat_1
+    );
+  in_rsci_dat <= in_rsc_dat;
+  in_rsci_idat <= in_rsci_idat_1;
+
+  return_rsci : work.ccs_out_pkg_v1.ccs_out_v1
+    GENERIC MAP(
+      rscid => 2,
+      width => 1
+      )
+    PORT MAP(
+      idat(0) => return_rsci_idat_1,
+      dat(0) => return_rsci_dat
+    );
+  return_rsci_idat_1 <= return_rsci_idat;
+  return_rsc_dat <= return_rsci_dat;
+
+  in_rsc_triosy_obj : work.mgc_io_sync_pkg_v2.mgc_io_sync_v2
+    GENERIC MAP(
+      valid => 0
+      )
+    PORT MAP(
+      ld => reg_return_rsc_triosy_obj_ld_cse,
+      lz => in_rsc_triosy_lz
+    );
+  return_rsc_triosy_obj : work.mgc_io_sync_pkg_v2.mgc_io_sync_v2
+    GENERIC MAP(
+      valid => 0
+      )
+    PORT MAP(
+      ld => reg_return_rsc_triosy_obj_ld_cse,
+      lz => return_rsc_triosy_lz
+    );
+  PROCESS (clk)
+  BEGIN
+    IF clk'EVENT AND ( clk = '1' ) THEN
+      IF (rst = '1') THEN
+        reg_return_rsc_triosy_obj_ld_cse <= '0';
+        return_rsci_idat <= '0';
+      ELSE
+        reg_return_rsc_triosy_obj_ld_cse <= '1';
+        return_rsci_idat <= in_rsci_idat;
+      END IF;
+    END IF;
+  END PROCESS;
+END v2;
+
+-- ------------------------------------------------------------------
+--  Design Unit:    button_top
+-- ------------------------------------------------------------------
+
+LIBRARY IEEE;
+
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+
+USE work.ccs_in_pkg_v1.ALL;
+USE work.ccs_out_pkg_v1.ALL;
+USE work.mgc_io_sync_pkg_v2.ALL;
+
+
+ENTITY button_top IS
+  PORT(
+    clk : IN STD_LOGIC;
+    rst : IN STD_LOGIC;
+    in_rsc_dat : IN STD_LOGIC;
+    in_rsc_triosy_lz : OUT STD_LOGIC;
+    return_rsc_dat : OUT STD_LOGIC;
+    return_rsc_triosy_lz : OUT STD_LOGIC
+  );
+END button_top;
+
+ARCHITECTURE v2 OF button_top IS
+  -- Default Constants
+
+  COMPONENT button_top_core
+    PORT(
+      clk : IN STD_LOGIC;
+      rst : IN STD_LOGIC;
+      in_rsc_dat : IN STD_LOGIC;
+      in_rsc_triosy_lz : OUT STD_LOGIC;
+      return_rsc_dat : OUT STD_LOGIC;
+      return_rsc_triosy_lz : OUT STD_LOGIC
+    );
+  END COMPONENT;
+BEGIN
+  button_top_core_inst : button_top_core
+    PORT MAP(
+      clk => clk,
+      rst => rst,
+      in_rsc_dat => in_rsc_dat,
+      in_rsc_triosy_lz => in_rsc_triosy_lz,
+      return_rsc_dat => return_rsc_dat,
+      return_rsc_triosy_lz => return_rsc_triosy_lz
+    );
+END v2;
+
+
+
