@@ -6,6 +6,10 @@ typedef ac_int<1,false> bit;
 const int buffer_size = 128;
 const int maxBytes = buffer_size/8;
 
+// Channels
+typedef ac_channel<ac_int<buffer_size,false> > SPI_out_channel_t;
+
+
 // Defaults for SPI
 const int def_SCLK = 1;
 const int def_ENABLE = 1;
@@ -28,7 +32,7 @@ class SPI
     wire_out &enable[sensors];
     wire_out &SDI[sensors];
     wire_out &SDO[sensors];
-    bit busy = 0;
+    bit busy = 1;
     
 
 
@@ -48,14 +52,22 @@ class SPI
         CS = CPOL;
         SCLK = CPOL;
         enable = 1;
-        ac
-        SDI = 1;
-        SDO = 1;
+        static tmp1 = ac::init_array<AC_VAL_MAX>(SDI, sensors);
+        static tmp2 = ac::init_array<AC_VAL_MAX>(SDO, sensors);
     }
     
-    void write(byte address, int bytes, ){
+    void write(byte address, int bytes, SPI_){
+        ac_int<ac::log2_ceil<buffer_size+8>::val, false> counter = AC_VAL_MAX;
+        if (busy) {
+
+        }
+        
         if (bytes <= maxBytes) {
-            
+            CS = not CS;
+            busy = not busy;
+            while(counter != 0) {
+
+            }
         }
     }
 
